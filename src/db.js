@@ -174,6 +174,25 @@ export async function updateGuillotineLeague(leagueId, fields) {
   if (error) throw error;
 }
 
+export function subscribeToLeague(leagueId, onChange) {
+  const channel = supabase
+    .channel(`league-${leagueId}`)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'guillotine_picks',
+      filter: `league_id=eq.${leagueId}`,
+    }, onChange)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'guillotine_league',
+      filter: `id=eq.${leagueId}`,
+    }, onChange)
+    .subscribe();
+  return channel;
+}
+
+export function unsubscribeLeague(channel) {
+  if (channel) supabase.removeChannel(channel);
+}
+
 export async function resetGuillotineDraft(leagueId) {
   const { error: pe } = await supabase
     .from('guillotine_picks')

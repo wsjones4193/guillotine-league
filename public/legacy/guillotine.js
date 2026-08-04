@@ -2,6 +2,7 @@
 // Runs after data.js and src/main.js (cloud init) have loaded.
 
 window.state = window.state || { guillotine: null };
+let _gChannel = null;
 
 // ── Navigation ────────────────────────────────────────────────
 function navigate(page) {
@@ -149,7 +150,13 @@ async function renderGuillotineDraft() {
   }
 
   _buildGuillotineDraftHTML(el);
-  window.refreshGuillotineDraft = () => _buildGuillotineDraftHTML(el);
+
+  // Live updates — tear down any existing subscription first
+  if (_gChannel) window.db.unsubscribeLeague(_gChannel);
+  _gChannel = window.db.subscribeToLeague(window.state.guillotine.league.id, async () => {
+    window.state.guillotine = await window.db.loadGuillotineLeague();
+    _buildGuillotineDraftHTML(el);
+  });
 }
 
 function _buildGuillotineDraftHTML(el) {
