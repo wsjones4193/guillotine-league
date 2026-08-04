@@ -266,7 +266,7 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
           : '';
         const posColor = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
         const photoUrl = window.PLAYER_HEADSHOTS?.[p.player_name.toLowerCase()] || null;
-        const headshot = `<div class="g-board-headshot" style="background:${posColor}15;border:1.5px solid ${posColor}30;position:relative;overflow:hidden;">
+        const headshot = `<div class="g-board-headshot" style="background:#fff;border:1.5px solid ${posColor}30;position:relative;overflow:hidden;">
           <svg width="40" height="46" viewBox="0 0 40 46" fill="none" style="position:absolute;inset:0;width:100%;height:100%;">
             <circle cx="20" cy="14" r="9" fill="${posColor}" opacity="0.4"/>
             <ellipse cx="20" cy="38" rx="14" ry="11" fill="${posColor}" opacity="0.4"/>
