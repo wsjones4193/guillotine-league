@@ -179,7 +179,7 @@ a { text-decoration: none; }
   position: sticky; left: 0; z-index: 1; min-width: 30px;
 }
 .g-board-arrow { display: block; font-size: 8px; color: #93c5fd; }
-.g-board-cell { border: 1px solid #e5e7eb; padding: 2px 4px; vertical-align: top; min-height: 26px; }
+.g-board-cell { border: 1px solid #e5e7eb; padding: 3px 4px; vertical-align: top; min-height: 54px; height: 54px; }
 .g-board-filled { background: #fff; }
 .g-board-empty  { background: #fafafa; }
 .g-board-current { background: #eff6ff; outline: 2px solid #1E6BFF; outline-offset: -2px; }
@@ -194,6 +194,10 @@ a { text-decoration: none; }
   border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
 }
 .g-board-th-owner { font-size: 9px; color: #9ca3af; font-weight: 400; margin-top: 1px; }
+.g-board-headshot {
+  width: 40px; height: 46px; border-radius: 4px; overflow: hidden;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+}
 
 .g-roster-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
 .g-roster-header { background: #1e3a5f; color: #fff; padding: 8px 12px; }

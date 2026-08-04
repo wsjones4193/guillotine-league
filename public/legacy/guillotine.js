@@ -260,15 +260,30 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
         const teamAbbr = _guildPlayerTeam(p.player_name, pos);
         const teamColor = (teamAbbr && window.NFL_DATA?.teamColors?.[teamAbbr]) || '#6b7280';
         cellStyle = `background:${_BOARD_POS_BG[pos] || '#f9fafb'};`;
-        const teamBadge = teamAbbr
-          ? `<span class="g-board-team-badge" style="background:${teamColor}">${teamAbbr}</span>` : '';
+        const logoUrl = teamAbbr ? `https://a.espncdn.com/i/teamlogos/nfl/500/${teamAbbr.toLowerCase()}.png` : '';
+        const logoImg = logoUrl
+          ? `<img src="${logoUrl}" onerror="this.style.display='none'" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">`
+          : '';
+        const posColor = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
+        const headshot = `<div class="g-board-headshot" style="background:${posColor}15;border:1.5px solid ${posColor}30;">
+          <svg width="28" height="38" viewBox="0 0 28 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="10" r="7" fill="${posColor}" opacity="0.5"/>
+            <ellipse cx="14" cy="30" rx="11" ry="9" fill="${posColor}" opacity="0.5"/>
+          </svg>
+        </div>`;
         cellContent = `
-          <div class="g-board-cell-top">
-            <span class="pos-badge pos-${pos}" style="font-size:9px;padding:1px 4px">${pos}</span>
-            ${teamBadge}
-          </div>
-          <span class="g-board-player">${p.player_name}</span>
-          <span class="g-board-pick-num">#${overall}</span>`;
+          <div style="display:flex;align-items:flex-start;gap:4px;height:100%;">
+            ${headshot}
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:100%;padding:2px 0;">
+              <span class="g-board-player">${p.player_name}</span>
+              <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                <span class="pos-badge pos-${pos}" style="font-size:8px;padding:1px 3px;">${pos}</span>
+                ${logoImg}
+                <span class="g-board-team-badge" style="background:${teamColor};font-size:8px;">${teamAbbr}</span>
+                <span class="g-board-pick-num" style="margin-left:auto">#${overall}</span>
+              </div>
+            </div>
+          </div>`;
       } else {
         cellContent = `<span class="g-board-pick-num" style="color:#d1d5db">#${overall}</span>`;
       }
