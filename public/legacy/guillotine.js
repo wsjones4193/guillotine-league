@@ -85,13 +85,13 @@ function _guildPlayerPool(picks) {
       if (!picked.has(p.name)) pool.push({ name: p.name, team: p.team || '', pos, adp: adpMap.get(p.name) ?? null });
     }
   }
-  for (const k of GUILLOTINE_KICKERS) {
-    if (!picked.has(k)) pool.push({ name: k, team: '', pos: 'K', adp: adpMap.get(k) ?? null });
-  }
+  GUILLOTINE_KICKERS.forEach((k, i) => {
+    if (!picked.has(k)) pool.push({ name: k, team: '', pos: 'K', adp: adpMap.get(k) ?? (500 + i) });
+  });
   const defNames = Object.keys(window.NFL_DATA?.teamNames || {}).map(abbr => `${abbr} DEF`);
-  for (const def of defNames) {
-    if (!picked.has(def)) pool.push({ name: def, team: def.replace(' DEF',''), pos: 'DEF', adp: adpMap.get(def) ?? null });
-  }
+  defNames.forEach((def, i) => {
+    if (!picked.has(def)) pool.push({ name: def, team: def.replace(' DEF',''), pos: 'DEF', adp: adpMap.get(def) ?? (600 + i) });
+  });
   pool.sort((a, b) => (a.adp ?? 9999) - (b.adp ?? 9999));
   return pool;
 }

@@ -17,12 +17,21 @@ export function getCurrentUserRole() { return _userRole; }
 // Boot: load players + ADP into window globals for the draft pool
 // ---------------------------------------------------------------------------
 export async function loadPlayersAndAdp() {
-  // Load the active projection set's players
-  const { data: sets } = await supabase
+  // Load players — prefer active set, fall back to most recent set
+  let { data: sets } = await supabase
     .from('projection_sets')
     .select('id, is_active')
     .eq('is_active', true)
     .limit(1);
+
+  if (!sets?.length) {
+    const { data: fallback } = await supabase
+      .from('projection_sets')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    sets = fallback;
+  }
 
   if (sets?.length) {
     const setId = sets[0].id;
