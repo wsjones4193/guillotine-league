@@ -1,0 +1,239 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #f8fafc;
+  color: #111827;
+}
+
+a { text-decoration: none; }
+
+/* Nav links */
+.g-nav-link {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.g-nav-link:hover { background: rgba(255,255,255,0.08); color: #f1f5f9; }
+.g-nav-link.active { background: rgba(99,102,241,0.2); color: #c7d2fe; }
+
+/* Pages */
+.g-page { display: none; }
+.g-page.active { display: block; }
+
+/* page-inner wrapper */
+.page-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Position badges */
+.pos-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.pos-QB  { background: rgba(37,99,235,0.12);  color: #1d4ed8; }
+.pos-RB  { background: rgba(5,150,105,0.12);  color: #047857; }
+.pos-WR  { background: rgba(180,83,9,0.12);   color: #b45309; }
+.pos-TE  { background: rgba(109,40,217,0.12); color: #6d28d9; }
+.pos-K   { background: rgba(100,116,139,0.12); color: #475569; }
+.pos-DEF { background: rgba(14,116,144,0.12); color: #0e7490; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 200ms, transform 200ms;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { border-left: 3px solid #ef4444; color: #ef4444; }
+.toast.success { border-left: 3px solid #22a648; }
+
+/* ===== GUILLOTINE LEAGUE ===== */
+
+.g-draft-layout {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 16px;
+  height: calc(100vh - 72px);
+  padding: 16px 16px 0;
+  align-items: stretch;
+}
+
+.g-draft-panel {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 104px);
+}
+
+.g-draft-pool { overflow: hidden; }
+.g-draft-center { overflow: hidden; }
+
+.g-teams-below { padding: 16px; }
+
+.g-all-teams-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+@media (max-width: 1200px) { .g-all-teams-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 700px)  { .g-all-teams-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.g-panel-header {
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.g-onclock-banner {
+  background: #1E6BFF;
+  color: #fff;
+  font-size: 13px;
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+
+.g-pos-tabs { display: flex; gap: 4px; }
+.g-pos-tab {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.g-pos-tab.active, .g-pos-tab:hover { background: rgba(255,255,255,0.4); }
+
+.g-draft-pool input[type="text"] { margin: 8px; width: calc(100% - 16px); }
+
+.g-player-list { overflow-y: auto; flex: 1; padding: 0 8px 8px; }
+
+.g-pool-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+}
+.g-pool-adp  { font-size: 10px; color: #6b7280; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.g-pool-name { flex: 1; font-weight: 500; }
+.g-pool-team { font-size: 10px; color: #6b7280; min-width: 30px; }
+
+.g-pick-btn {
+  background: #1E6BFF; color: #fff; border: none; border-radius: 4px;
+  padding: 2px 8px; font-size: 10px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.g-pick-btn:hover { background: #1a5ce0; }
+.g-pick-btn-disabled { width: 36px; text-align: center; color: #d1d5db; font-size: 13px; }
+
+.g-draft-center { padding: 0; overflow: hidden; }
+.g-board-scroll { overflow: auto; flex: 1; }
+
+.g-board-table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 11px; }
+.g-board-table thead tr { background: #f3f4f6; position: sticky; top: 0; z-index: 2; }
+
+.g-board-th {
+  padding: 4px 6px; text-align: center; font-size: 9px; font-weight: 700;
+  color: #374151; white-space: nowrap; border: 1px solid #e5e7eb; min-width: 90px; max-width: 120px;
+}
+.g-board-round-hdr { padding: 6px 4px; width: 36px; border: 1px solid #e5e7eb; }
+.g-board-round {
+  background: #1e3a5f; color: #fff; font-size: 10px; font-weight: 700;
+  text-align: center; padding: 2px; border: 1px solid #16305a; white-space: nowrap;
+  position: sticky; left: 0; z-index: 1; min-width: 30px;
+}
+.g-board-arrow { display: block; font-size: 8px; color: #93c5fd; }
+.g-board-cell { border: 1px solid #e5e7eb; padding: 2px 4px; vertical-align: top; min-height: 26px; }
+.g-board-filled { background: #fff; }
+.g-board-empty  { background: #fafafa; }
+.g-board-current { background: #eff6ff; outline: 2px solid #1E6BFF; outline-offset: -2px; }
+.g-board-player {
+  display: block; font-weight: 600; color: #111; font-size: 10px; line-height: 1.2;
+  margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;
+}
+.g-board-pick-num { display: block; font-size: 8px; color: #9ca3af; }
+.g-board-cell-top { display: flex; align-items: center; gap: 3px; margin-bottom: 1px; }
+.g-board-team-badge {
+  font-size: 9px; font-weight: 700; color: #fff; padding: 1px 4px;
+  border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
+}
+.g-board-th-owner { font-size: 9px; color: #9ca3af; font-weight: 400; margin-top: 1px; }
+
+.g-roster-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+.g-roster-header { background: #1e3a5f; color: #fff; padding: 8px 12px; }
+.g-roster-header-main { display: flex; justify-content: space-between; align-items: flex-start; }
+.g-roster-owner    { font-size: 11px; color: rgba(255,255,255,0.75); font-weight: 500; margin-top: 2px; }
+.g-roster-team-name { font-size: 13px; font-weight: 700; color: #fff; }
+.g-roster-slot-num  { font-size: 11px; color: rgba(255,255,255,0.65); white-space: nowrap; margin-top: 1px; }
+.g-roster-rows { background: #fff; }
+.g-roster-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-bottom: 1px solid #f9fafb; font-size: 12px;
+}
+.g-roster-empty { background: #fafafa; }
+.g-roster-slot-label { font-size: 10px; font-weight: 700; color: #9ca3af; min-width: 36px; text-transform: uppercase; }
+.g-roster-player { flex: 1; color: #111; }
+
+.g-stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; text-align: center; }
+.g-stat-num   { font-size: 28px; font-weight: 700; color: #1E6BFF; }
+.g-stat-label { font-size: 12px; color: #6b7280; margin-top: 4px; text-transform: uppercase; font-weight: 600; }
+
+.g-setup-input {
+  border: 1px solid #e5e7eb; border-radius: 5px; padding: 5px 8px;
+  font-size: 13px; color: #111827; background: #fff; transition: border-color 0.15s;
+}
+.g-setup-input:focus { outline: none; border-color: #1E6BFF; }
+
+.g-teams-layout { max-width: 1100px; }
+.g-owner-group { margin-bottom: 32px; }
+.g-owner-group-header {
+  background: #1e3a5f; color: #fff; font-size: 14px; font-weight: 700;
+  padding: 8px 14px; border-radius: 8px 8px 0 0; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.g-owner-group-teams {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  padding: 16px; background: #f9fafb;
+  border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;
+}
+
+@media (max-width: 900px) {
+  .g-draft-layout { grid-template-columns: 1fr; height: auto; }
+  .g-draft-panel { max-height: none; }
+  .g-owner-group-teams { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guillotine League — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap">
+  <script type="module" src="/src/login.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', system-ui, sans-serif;
+    }
+    .login-card {
+      background: #1e293b;
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 0 48px rgba(99,102,241,0.1), 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .login-title { font-size: 26px; font-weight: 900; color: #f1f5f9; text-align: center; letter-spacing: -0.02em; }
+    .login-title span { color: #818cf8; }
+    .login-subtitle { font-size: 13px; color: rgba(241,245,249,0.45); text-align: center; margin-top: 4px; }
+    form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    input {
+      width: 100%;
+      background: rgba(15,23,42,0.6);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+      font-family: 'Outfit', system-ui, sans-serif;
+    }
+    input:focus { border-color: #818cf8; }
+    input::placeholder { color: rgba(241,245,249,0.3); }
+    .login-btn {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 4px;
+      font-family: 'Outfit', system-ui, sans-serif;
+    }
+    .login-btn:hover { background: #818cf8; }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-msg {
+      color: #f87171;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      width: 100%;
+    }
+    .error-msg.visible { display: block; }
+    .access-note { font-size: 12px; color: #475569; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div>
+      <div class="login-title">🏈 <span>Guillotine</span> League</div>
+      <div class="login-subtitle">2025 Draft Board</div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <form id="loginForm">
+      <input type="email"    id="emailInput"    placeholder="Email address" required autocomplete="email">
+      <input type="password" id="passwordInput" placeholder="Password"      required autocomplete="current-password">
+      <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    </form>
+    <div class="access-note">Contact the commissioner to get access.</div>
+  </div>
+</body>
+</html>

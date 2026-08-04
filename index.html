@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guillotine League</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap">
+  <script>
+    window.__cloudReady = new Promise(function(resolve) { window.__cloudResolve = resolve; });
+  </script>
+  <script type="module" src="/src/main.js"></script>
+  <link rel="stylesheet" href="/legacy/styles.css">
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:'Inter',system-ui,sans-serif;">
+
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" style="position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;">
+    <div style="font-size:48px;">🏈</div>
+    <div style="color:#818cf8;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">Loading Draft Board…</div>
+  </div>
+
+  <!-- Top nav -->
+  <nav style="background:#1e293b;height:56px;display:flex;align-items:center;padding:0 20px;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 rgba(99,102,241,0.2);">
+    <span style="font-family:'Outfit',sans-serif;font-weight:900;font-size:18px;color:#f1f5f9;letter-spacing:-0.01em;margin-right:28px;">🏈 Guillotine</span>
+    <a href="#" class="g-nav-link active" onclick="navigate('draft')">Draft Board</a>
+    <a href="#" class="g-nav-link" onclick="navigate('teams')">Teams</a>
+    <a href="#" class="g-nav-link" data-admin style="display:none;" onclick="navigate('setup')">Setup</a>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+      <span style="font-size:13px;color:#94a3b8;" id="userDisplayName"></span>
+      <a href="#" onclick="window.cloudSignOut()" style="font-size:13px;color:#6366f1;font-weight:600;text-decoration:none;">Sign Out</a>
+    </div>
+  </nav>
+
+  <!-- Pages -->
+  <div id="page-draft"  class="g-page active"></div>
+  <div id="page-teams"  class="g-page"></div>
+  <div id="page-setup"  class="g-page"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="/legacy/data.js"></script>
+  <script src="/legacy/guillotine.js"></script>
+</body>
+</html>
