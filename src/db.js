@@ -184,6 +184,28 @@ export function unsubscribeLeague(channel) {
   if (channel) supabase.removeChannel(channel);
 }
 
+export async function loadSleeperIds() {
+  const CACHE_KEY = 'sleeper_ids_v1';
+  const CACHE_TTL = 24 * 60 * 60 * 1000;
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (Date.now() - ts < CACHE_TTL) { window.SLEEPER_IDS = data; return; }
+    }
+    const res = await fetch('https://api.sleeper.app/v1/players/nfl');
+    const all = await res.json();
+    const map = {};
+    for (const [id, p] of Object.entries(all)) {
+      if (p.full_name && (p.active || p.years_exp <= 3)) {
+        map[p.full_name.toLowerCase()] = id;
+      }
+    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data: map, ts: Date.now() }));
+    window.SLEEPER_IDS = map;
+  } catch (_) {}
+}
+
 export async function resetGuillotineDraft(leagueId) {
   const { error: pe } = await supabase
     .from('guillotine_picks')
