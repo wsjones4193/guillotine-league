@@ -264,9 +264,8 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
         const logoImg = logoUrl
           ? `<img src="${logoUrl}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;">`
           : '';
-        const posColor   = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
-        const sleeperId  = window.SLEEPER_IDS?.[p.player_name.toLowerCase()];
-        const photoUrl   = sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
+        const posColor = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
+        const photoUrl = window.PLAYER_HEADSHOTS?.[p.player_name.toLowerCase()] || null;
         const silhouette = `<svg width="28" height="38" viewBox="0 0 28 38" fill="none"><circle cx="14" cy="10" r="7" fill="${posColor}" opacity="0.45"/><ellipse cx="14" cy="30" rx="11" ry="9" fill="${posColor}" opacity="0.45"/></svg>`;
         const headshot   = `<div class="g-board-headshot" style="background:${posColor}15;border:1.5px solid ${posColor}30;">
           ${photoUrl

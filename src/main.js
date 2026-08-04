@@ -34,8 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load players + ADP for draft pool
     await db.loadPlayersAndAdp();
 
-    // Load Sleeper player ID map for headshots (cached 24h in localStorage)
-    db.loadSleeperIds().catch(() => {});
 
     window.__appReady = true;
     window.__userRole = role;
