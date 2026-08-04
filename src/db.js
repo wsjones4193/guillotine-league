@@ -66,7 +66,7 @@ export async function loadPlayersAndAdp() {
 // ---------------------------------------------------------------------------
 export async function loadProfiles() {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('guillotine_profiles')
     .select('id, display_name')
     .order('display_name');
   if (error) throw error;

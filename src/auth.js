@@ -18,7 +18,7 @@ export async function signOut() {
 
 export async function upsertProfile(session) {
   const user = session.user;
-  await supabase.from('profiles').upsert({
+  await supabase.from('guillotine_profiles').upsert({
     id:           user.id,
     email:        user.email,
     display_name: user.user_metadata?.display_name || user.email.split('@')[0],
@@ -27,7 +27,7 @@ export async function upsertProfile(session) {
 
 export async function getUserRole(userId) {
   const { data } = await supabase
-    .from('profiles')
+    .from('guillotine_profiles')
     .select('role')
     .eq('id', userId)
     .single();
