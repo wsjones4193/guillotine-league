@@ -262,7 +262,7 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
         cellStyle = `background:${_BOARD_POS_BG[pos] || '#f9fafb'};`;
         const logoUrl = teamAbbr ? `https://a.espncdn.com/i/teamlogos/nfl/500/${teamAbbr.toLowerCase()}.png` : '';
         const logoImg = logoUrl
-          ? `<img src="${logoUrl}" onerror="this.style.display='none'" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">`
+          ? `<img src="${logoUrl}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;">`
           : '';
         const posColor = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
         const headshot = `<div class="g-board-headshot" style="background:${posColor}15;border:1.5px solid ${posColor}30;">
