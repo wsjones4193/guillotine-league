@@ -27,13 +27,20 @@ export async function loadPlayersAndAdp() {
 
   if (adpRows && window.NFL_DATA) {
     window.ADP_DATA = adpRows.map(r => ({ fullName: r.full_name, adp: r.adp }));
+
+    // Build full team name → abbreviation reverse map from data.js teamNames
+    const nameToAbbr = {};
+    for (const [abbr, fullName] of Object.entries(window.NFL_DATA.teamNames || {})) {
+      nameToAbbr[fullName] = abbr;
+    }
+
     const buckets = { QB: [], RB: [], WR: [], TE: [] };
     for (const row of adpRows) {
       const pos = row.pos;
       if (!buckets[pos]) continue;
       buckets[pos].push({
         name: row.full_name,
-        team: row.team_name || '',
+        team: nameToAbbr[row.team_name] || row.team_name || '',
         pos,
       });
     }
