@@ -17,51 +17,29 @@ export function getCurrentUserRole() { return _userRole; }
 // Boot: load players + ADP into window globals for the draft pool
 // ---------------------------------------------------------------------------
 export async function loadPlayersAndAdp() {
-  // Load players from most recent projection set
-  const { data: sets, error: setsErr } = await supabase
-    .from('projection_sets')
-    .select('id')
-    .order('created_at', { ascending: false })
-    .limit(1);
-
-  if (setsErr) console.error('[guillotine] projection_sets error:', setsErr.message, setsErr.code);
-
-  if (sets?.length) {
-    const setId = sets[0].id;
-    const { data: playerRows, error: playersErr } = await supabase
-      .from('player_projections')
-      .select('player_name, pos, team_abbr, rank')
-      .eq('set_id', setId);
-
-    if (playersErr) console.error('[guillotine] player_projections error:', playersErr.message);
-
-    if (playerRows && window.NFL_DATA) {
-      const buckets = { QB: [], RB: [], WR: [], TE: [] };
-      for (const row of playerRows) {
-        const pos = row.pos;
-        if (!buckets[pos]) continue;
-        buckets[pos].push({
-          name: row.player_name,
-          team: row.team_abbr === 'UNALLOCATED' ? '' : (row.team_abbr || ''),
-          pos,
-          rank: row.rank || 0,
-        });
-      }
-      for (const pos of Object.keys(buckets)) {
-        buckets[pos].sort((a, b) => (a.rank || 0) - (b.rank || 0));
-        window.NFL_DATA.players[pos] = buckets[pos];
-      }
-    }
-  }
-
-  // Load ADP
-  const { data: adpRows } = await supabase
+  // Load players + ADP from adp table (has pos, team_name, adp)
+  const { data: adpRows, error: adpErr } = await supabase
     .from('adp')
-    .select('full_name, adp')
+    .select('full_name, pos, team_name, adp')
     .order('adp', { ascending: true });
 
-  if (adpRows) {
+  if (adpErr) console.error('[guillotine] adp error:', adpErr.message);
+
+  if (adpRows && window.NFL_DATA) {
     window.ADP_DATA = adpRows.map(r => ({ fullName: r.full_name, adp: r.adp }));
+    const buckets = { QB: [], RB: [], WR: [], TE: [] };
+    for (const row of adpRows) {
+      const pos = row.pos;
+      if (!buckets[pos]) continue;
+      buckets[pos].push({
+        name: row.full_name,
+        team: row.team_name || '',
+        pos,
+      });
+    }
+    for (const pos of Object.keys(buckets)) {
+      window.NFL_DATA.players[pos] = buckets[pos];
+    }
   }
 }
 
