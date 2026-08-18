@@ -18,18 +18,22 @@ export function getCurrentUserRole() { return _userRole; }
 // ---------------------------------------------------------------------------
 export async function loadPlayersAndAdp() {
   // Load players from most recent projection set
-  const { data: sets } = await supabase
+  const { data: sets, error: setsErr } = await supabase
     .from('projection_sets')
     .select('id')
     .order('created_at', { ascending: false })
     .limit(1);
 
+  if (setsErr) console.error('[guillotine] projection_sets error:', setsErr.message, setsErr.code);
+
   if (sets?.length) {
     const setId = sets[0].id;
-    const { data: playerRows } = await supabase
+    const { data: playerRows, error: playersErr } = await supabase
       .from('player_projections')
       .select('player_name, pos, team_abbr, rank')
       .eq('set_id', setId);
+
+    if (playersErr) console.error('[guillotine] player_projections error:', playersErr.message);
 
     if (playerRows && window.NFL_DATA) {
       const buckets = { QB: [], RB: [], WR: [], TE: [] };
