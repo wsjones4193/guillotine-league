@@ -81,13 +81,14 @@ const GUILLOTINE_NUM_TEAMS  = 14;
 const GUILLOTINE_NUM_ROUNDS = 15;
 
 const GUILLOTINE_KICKERS = [
-  'Justin Tucker','Evan McPherson','Tyler Bass','Harrison Butker','Matt Gay',
-  'Jake Elliott','Brandon McManus','Younghoe Koo','Jason Sanders','Chris Boswell',
-  'Tyler Henry','Dustin Hopkins','Daniel Carlson','Ka\'imi Fairbairn','Graham Gano',
-  'Cairo Santos','Matt Prater','Eddy Piñeiro','Nick Folk','Riley Patterson',
-  'Wil Lutz','Robbie Gould','Ryan Succop','Elliot Fry','Blake Grupe',
-  'Greg Zuerlein','Cade York','Cameron Dicker','Jake Moody','Josh Lambo',
-  'Michael Badgley','Sam Ficken',
+  'Brandon Aubrey','Ka\'imi Fairbairn','Cameron Dicker','Cam Little',
+  'Jason Myers','Eddy Piñeiro','Tyler Loop','Jake Bates',
+  'Evan McPherson','Chase McLaughlin','Cairo Santos','Andy Borregales',
+  'Harrison Mevis','Chris Boswell','Harrison Butker','Will Reichard',
+  'Wil Lutz','Jake Elliott','Tyler Bass','Joey Slye',
+  'Chad Ryland','Jake Moody','Jason Sanders','Blake Grupe',
+  'Younghoe Koo','Daniel Carlson','Matt Gay','Anders Carlson',
+  'Greg Joseph','Austin Seibert','Cade York','Riley Patterson',
 ];
 
 const GUILD_OWNER_PALETTE = [
