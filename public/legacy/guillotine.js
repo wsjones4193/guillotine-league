@@ -656,7 +656,7 @@ async function renderGuillotineTeams() {
     ownerMap[t.owner_name].push(t);
   }
 
-  const cols = Object.entries(ownerMap).map(([owner, ownerTeams]) => {
+  const ownerRows = Object.entries(ownerMap).map(([owner, ownerTeams]) => {
     const color = colorMap[owner];
     const teamCards = ownerTeams.map(t => {
       const roster = _guildRosterForTeam(t.id, picks);
@@ -670,31 +670,29 @@ async function renderGuillotineTeams() {
         </div>`).join('');
 
       return `
-        <div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:8px;">
-          <div style="background:${color};padding:6px 8px;display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:12px;font-weight:700;color:#fff;">${t.team_name}</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.7);">Slot ${t.draft_slot}</div>
-            </div>
+        <div style="flex:1;min-width:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+          <div style="background:${color};padding:6px 8px;">
+            <div style="font-size:12px;font-weight:700;color:#fff;">${t.team_name}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.7);">Slot ${t.draft_slot}</div>
           </div>
           <div>${rows}</div>
         </div>`;
     }).join('');
 
     return `
-      <div style="display:flex;flex-direction:column;min-width:0;">
-        <div style="padding:6px 8px;font-size:11px;font-weight:700;color:#fff;background:${color};opacity:0.85;letter-spacing:0.05em;border-radius:4px 4px 0 0;text-align:center;margin-bottom:4px;">
+      <div style="margin-bottom:12px;">
+        <div style="padding:5px 10px;font-size:11px;font-weight:700;color:#fff;background:${color};letter-spacing:0.06em;border-radius:6px 6px 0 0;text-transform:uppercase;">
           ${owner}
         </div>
-        ${teamCards}
+        <div style="display:flex;gap:10px;padding:8px;background:#f3ede4;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;">
+          ${teamCards}
+        </div>
       </div>`;
   }).join('');
 
   el.innerHTML = `
     <div style="padding:12px 16px;overflow-y:auto;height:calc(100vh - 56px);">
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;min-width:0;">
-        ${cols}
-      </div>
+      ${ownerRows}
     </div>`;
 }
 
