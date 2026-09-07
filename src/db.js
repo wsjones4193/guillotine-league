@@ -91,7 +91,7 @@ export async function createGuillotineLeague(name, teamsConfig) {
   const league = leagueRows[0];
 
   const NUM_TEAMS  = teamsConfig.length;
-  const NUM_ROUNDS = 14;
+  const NUM_ROUNDS = 15;
 
   const teamRows = teamsConfig.map(t => ({
     league_id:     league.id,

@@ -75,10 +75,10 @@ function showToast(msg, type = 'success') {
 
 // ── Constants ─────────────────────────────────────────────────
 const GUILLOTINE_ROSTER_SLOTS = [
-  'QB','RB','RB','WR','WR','TE','FLEX','FLEX','FLEX','K','DEF','BN','BN','BN'
+  'QB','RB','RB','WR','WR','TE','FLEX','FLEX','FLEX','K','DEF','BN','BN','BN','BN'
 ];
 const GUILLOTINE_NUM_TEAMS  = 14;
-const GUILLOTINE_NUM_ROUNDS = 14;
+const GUILLOTINE_NUM_ROUNDS = 15;
 
 const GUILLOTINE_KICKERS = [
   'Justin Tucker','Evan McPherson','Tyler Bass','Harrison Butker','Matt Gay',
@@ -219,7 +219,7 @@ async function renderGuillotineDraft() {
 function _buildGuillotineBoardHTML(el) {
   const { league, teams, picks } = window.state.guillotine;
   const cp      = league.current_pick;
-  const isDone  = league.draft_status === 'complete' || cp > 196;
+  const isDone  = league.draft_status === 'complete' || cp > 210;
   const onClock = _guildCurrentOnClock(league, picks, teams);
 
   el.innerHTML = `
@@ -227,7 +227,7 @@ function _buildGuillotineBoardHTML(el) {
       ${isDone
         ? '<div class="g-onclock-banner" style="background:#16a34a">✅ Draft Complete!</div>'
         : `<div class="g-onclock-banner">
-             Pick ${cp} of 196 · Round ${Math.ceil(cp/14)} · ${onClock
+             Pick ${cp} of 210 · Round ${Math.ceil(cp/14)} · ${onClock
                ? `ON THE CLOCK: <strong>${onClock.owner_name}</strong> — ${onClock.team_name}`
                : 'Draft Pending'}
            </div>`}
@@ -417,7 +417,7 @@ function _buildDraftingHTML(el) {
   const { league, teams, picks } = window.state.guillotine;
   const uid     = _guildCurrentUserId();
   const cp      = league.current_pick;
-  const isDone  = league.draft_status === 'complete' || cp > 196;
+  const isDone  = league.draft_status === 'complete' || cp > 210;
   const onClock = _guildCurrentOnClock(league, picks, teams);
   const pool    = _guildPlayerPool(picks);
   const colorMap = _ownerColorMap(teams);
@@ -517,7 +517,7 @@ function _buildDraftingHTML(el) {
         <div style="padding:8px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;align-items:center;gap:8px;flex-shrink:0;">
           ${isDone
             ? '<span style="font-size:13px;font-weight:700;color:#16a34a;">✅ Draft Complete</span>'
-            : `<span style="font-size:13px;font-weight:600;color:#374151;">Pick ${cp} of 196</span>
+            : `<span style="font-size:13px;font-weight:600;color:#374151;">Pick ${cp} of 210</span>
                <span style="font-size:13px;color:#6b7280;">· Round ${Math.ceil(cp/14)}</span>
                ${onClock
                  ? `<span style="font-size:13px;color:#6b7280;margin-left:4px;">· On clock: <strong style="color:#374151;">${onClock.owner_name}</strong></span>`
@@ -797,7 +797,7 @@ function _renderGuillotineSetupExisting(el, g, profiles) {
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
         <div class="g-stat-card"><div class="g-stat-num">${doneCount}</div><div class="g-stat-label">Picks Made</div></div>
-        <div class="g-stat-card"><div class="g-stat-num">${196 - doneCount}</div><div class="g-stat-label">Remaining</div></div>
+        <div class="g-stat-card"><div class="g-stat-num">${210 - doneCount}</div><div class="g-stat-label">Remaining</div></div>
         <div class="g-stat-card"><div class="g-stat-num">${league.current_pick}</div><div class="g-stat-label">Current Pick</div></div>
       </div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
