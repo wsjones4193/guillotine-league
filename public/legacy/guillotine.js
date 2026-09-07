@@ -322,85 +322,60 @@ async function renderAvailablePlayers() {
 
 function _buildAvailableHTML(el) {
   const { picks } = window.state.guillotine;
-  const pool = _guildPlayerPool(picks);
-  const currentPos = window._gAvailPos || 'ALL';
-  const posOrder   = ['QB','RB','WR','TE','K','DEF'];
+  const pool     = _guildPlayerPool(picks);
+  const search   = window._gAvailSearch || '';
+  const posOrder = ['QB','RB','WR','TE','K','DEF'];
 
   const groups = { QB: [], RB: [], WR: [], TE: [], K: [], DEF: [] };
   for (const p of pool) {
     if (groups[p.pos]) groups[p.pos].push(p);
   }
 
-  function buildRows(players) {
-    if (!players.length) return '<div style="padding:12px 16px;color:#9ca3af;font-size:13px;">None available</div>';
-    return players.map(p => `
+  function buildCol(pos) {
+    const pc      = _POS_COLOR[pos] || '#6b7280';
+    const players = groups[pos] || [];
+    const visible = search ? players.filter(p => p.name.toLowerCase().includes(search)) : players;
+    const rows = visible.map(p => `
       <div class="g-pool-row" data-pos="${p.pos}" data-name="${p.name.toLowerCase()}"
-           style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
-        <span style="color:#9ca3af;font-size:11px;width:34px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
-        <span class="pos-badge pos-${p.pos}">${p.pos}</span>
-        <span style="flex:1;font-size:13px;font-weight:500;">${p.name}</span>
-        <span style="font-size:12px;color:#9ca3af;">${p.team}</span>
+           style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid #f3f4f6;">
+        <span style="color:#9ca3af;font-size:10px;width:28px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
+        <span style="flex:1;font-size:12px;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
+        <span style="font-size:10px;color:#9ca3af;flex-shrink:0;">${p.team}</span>
       </div>`).join('');
+
+    return `
+      <div style="display:flex;flex-direction:column;min-width:0;border-right:1px solid #e5e7eb;">
+        <div style="padding:8px;background:${pc};color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;display:flex;align-items:baseline;gap:6px;flex-shrink:0;">
+          ${pos}
+          <span style="font-weight:400;opacity:0.8;font-size:10px;">${visible.length}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;">
+          ${rows || '<div style="padding:10px 8px;color:#9ca3af;font-size:12px;">None</div>'}
+        </div>
+      </div>`;
   }
 
-  let listHTML = '';
-  if (currentPos === 'ALL') {
-    for (const pos of posOrder) {
-      const players = groups[pos];
-      if (!players.length) continue;
-      const pc = _POS_COLOR[pos] || '#6b7280';
-      listHTML += `
-        <div style="background:${pc}12;border-left:3px solid ${pc};padding:6px 16px;font-size:11px;font-weight:700;color:${pc};letter-spacing:0.08em;margin-top:8px;">
-          ${pos} — ${players.length} available
-        </div>
-        ${buildRows(players)}`;
-    }
-  } else {
-    const pc = _POS_COLOR[currentPos] || '#6b7280';
-    listHTML = `
-      <div style="background:${pc}12;border-left:3px solid ${pc};padding:6px 16px;font-size:11px;font-weight:700;color:${pc};letter-spacing:0.08em;">
-        ${currentPos} — ${(groups[currentPos]||[]).length} available
-      </div>
-      ${buildRows(groups[currentPos] || [])}`;
-  }
+  const cols = posOrder.map(buildCol).join('');
 
   el.innerHTML = `
     <div style="display:flex;flex-direction:column;height:calc(100vh - 56px);">
-      <div style="padding:10px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f9fafb;">
-        <div class="g-pos-tabs">
-          ${['ALL','QB','RB','WR','TE','K','DEF'].map(p =>
-            `<button class="g-pos-tab ${currentPos === p ? 'active' : ''}" onclick="window.gAvailFilterPos('${p}')">${p}</button>`
-          ).join('')}
-        </div>
+      <div style="padding:8px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;background:#f9fafb;flex-shrink:0;">
         <input type="text" id="gAvailSearch" placeholder="Search players…"
           oninput="window.gAvailFilter()"
-          style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;width:180px;">
-        <span style="font-size:13px;color:#6b7280;margin-left:auto;">${pool.length} available</span>
+          value="${search}"
+          style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;width:200px;">
+        <span style="font-size:13px;color:#6b7280;">${pool.length} available</span>
       </div>
-      <div id="gAvailList" style="flex:1;overflow-y:auto;padding-bottom:16px;">
-        ${listHTML}
+      <div style="flex:1;display:grid;grid-template-columns:repeat(6,1fr);overflow:hidden;">
+        ${cols}
       </div>
     </div>`;
-
-  // Restore search if returning to page
-  const searchEl = document.getElementById('gAvailSearch');
-  if (searchEl && window._gAvailSearch) {
-    searchEl.value = window._gAvailSearch;
-    window.gAvailFilter();
-  }
 }
-
-window.gAvailFilterPos = function(pos) {
-  window._gAvailPos = pos;
-  if (window.state.guillotine) _buildAvailableHTML(document.getElementById('page-available'));
-};
 
 window.gAvailFilter = function() {
   const search = (document.getElementById('gAvailSearch')?.value || '').toLowerCase();
   window._gAvailSearch = search;
-  document.querySelectorAll('#gAvailList .g-pool-row').forEach(row => {
-    row.style.display = !search || row.dataset.name.includes(search) ? '' : 'none';
-  });
+  if (window.state.guillotine) _buildAvailableHTML(document.getElementById('page-available'));
 };
 
 // ── Drafting Page ─────────────────────────────────────────────
