@@ -52,6 +52,7 @@ function _reRenderCurrentPage() {
   if (_gCurrentPage === 'draft')     _buildGuillotineBoardHTML(document.getElementById('page-draft'));
   if (_gCurrentPage === 'available') _buildAvailableHTML(document.getElementById('page-available'));
   if (_gCurrentPage === 'drafting')  _buildDraftingHTML(document.getElementById('page-drafting'));
+  if (_gCurrentPage === 'teams')     renderGuillotineTeams();
 }
 
 function _ensureSubscription(leagueId) {
@@ -898,6 +899,7 @@ window.resetGuillotineDraft = async function() {
     await window.db.resetGuillotineDraft(g.league.id);
     window.state.guillotine = await window.db.loadGuillotineLeague();
     // Reset subscription so it re-subscribes to the same league
+    window.db.unsubscribeLeague(_gChannel);
     _gChannel = null;
     showToast('Draft reset.');
     renderGuillotineSetup();
