@@ -479,15 +479,16 @@ function _buildDraftingHTML(el) {
 
       <!-- Left: user's rosters -->
       <div style="width:300px;flex-shrink:0;overflow-y:auto;border-right:1px solid #e5e7eb;background:#f9fafb;">
+        ${window.__userRole === 'admin' ? `
         <div style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">
-          <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Managing</div>
+          <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Commissioner — Managing</div>
           <select onchange="window.gDraftActingAs(this.value)"
             style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:6px 8px;font-size:13px;font-weight:600;background:#fff;cursor:pointer;">
             <option value="">My Teams</option>
             ${allOwners.map(o => `<option value="${o}" ${actingAs === o ? 'selected' : ''}>${o}</option>`).join('')}
           </select>
-          ${actingAs ? `<div style="margin-top:5px;font-size:11px;color:#f59e0b;font-weight:600;">⚡ Picking for ${actingAs}</div>` : ''}
-        </div>
+          ${actingAs ? `<div style="margin-top:5px;font-size:11px;color:#B51217;font-weight:700;">⚡ Picking for ${actingAs}</div>` : ''}
+        </div>` : ''}
         <div style="padding:10px;">
           ${rosterCardsHTML}
         </div>
