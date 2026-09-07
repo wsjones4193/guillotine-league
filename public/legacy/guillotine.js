@@ -646,6 +646,7 @@ async function renderGuillotineTeams() {
     return;
   }
 
+  _ensureSubscription(window.state.guillotine.league.id);
   const { teams, picks } = window.state.guillotine;
   const colorMap = _ownerColorMap(teams);
 
