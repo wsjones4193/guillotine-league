@@ -447,7 +447,8 @@ function _buildDraftingHTML(el) {
     }
 
     playerListHTML += `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
+      <div data-player-row data-pos="${p.pos}" data-name="${p.name.toLowerCase()}"
+           style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
         <span style="color:#9ca3af;font-size:11px;width:34px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
         <span class="pos-badge pos-${p.pos}">${p.pos}</span>
         <span style="flex:1;font-size:13px;font-weight:500;">${p.name}</span>
@@ -462,11 +463,14 @@ function _buildDraftingHTML(el) {
     playerListHTML = '<div style="padding:20px;color:#9ca3af;font-size:13px;">No players available.</div>';
   }
 
+  const savedSearch = window._gDraftSearch || '';
+  const savedPos    = window._gDraftPos    || 'ALL';
+
   el.innerHTML = `
     <div style="display:flex;height:calc(100vh - 56px);overflow:hidden;">
 
       <!-- Left: user's rosters -->
-      <div style="width:320px;flex-shrink:0;overflow-y:auto;border-right:1px solid #e5e7eb;background:#f9fafb;">
+      <div style="width:300px;flex-shrink:0;overflow-y:auto;border-right:1px solid #e5e7eb;background:#f9fafb;">
         <div style="padding:10px 12px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid #e5e7eb;">
           My Teams
         </div>
@@ -477,7 +481,9 @@ function _buildDraftingHTML(el) {
 
       <!-- Right: player list -->
       <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-        <div style="padding:10px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;align-items:center;gap:8px;">
+
+        <!-- Status bar -->
+        <div style="padding:8px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;align-items:center;gap:8px;flex-shrink:0;">
           ${isDone
             ? '<span style="font-size:13px;font-weight:700;color:#16a34a;">✅ Draft Complete</span>'
             : `<span style="font-size:13px;font-weight:600;color:#374151;">Pick ${cp} of 196</span>
@@ -487,12 +493,36 @@ function _buildDraftingHTML(el) {
                  : '<span style="font-size:13px;color:#6b7280;">· Draft pending</span>'}`}
           ${isMyTurn ? '<span style="background:#22a648;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;margin-left:auto;">YOUR PICK</span>' : ''}
         </div>
-        <div style="flex:1;overflow-y:auto;padding-bottom:16px;">
+
+        <!-- Search + pos filter -->
+        <div style="padding:7px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-shrink:0;background:#fff;">
+          <input type="text" id="gDraftSearch" placeholder="Search players…"
+            value="${savedSearch}"
+            oninput="window.gDraftFilter()"
+            autocomplete="off"
+            style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;width:170px;outline:none;transition:box-shadow 0.15s;"
+            onfocus="this.style.boxShadow='0 0 0 2px #6366f1'" onblur="this.style.boxShadow=''">
+          <div class="g-pos-tabs">
+            ${['ALL','QB','RB','WR','TE','K','DEF'].map(p =>
+              `<button class="g-pos-tab ${savedPos === p ? 'active' : ''}" onclick="window.gDraftFilterPos('${p}')">${p}</button>`
+            ).join('')}
+          </div>
+        </div>
+
+        <div id="gDraftPlayerList" style="flex:1;overflow-y:auto;padding-bottom:16px;">
           ${playerListHTML}
         </div>
       </div>
 
     </div>`;
+
+  // Apply any saved filter, then restore focus to search
+  if (savedSearch || savedPos !== 'ALL') window.gDraftFilter();
+  const searchEl = document.getElementById('gDraftSearch');
+  if (searchEl) {
+    searchEl.focus();
+    searchEl.setSelectionRange(searchEl.value.length, searchEl.value.length);
+  }
 }
 
 // ── Roster Card ───────────────────────────────────────────────
@@ -524,6 +554,27 @@ function _buildRosterCard(team, picks, showOwner, nextPick, headerColor) {
       </div>
     </div>`;
 }
+
+// ── Drafting page filter handlers ────────────────────────────
+window.gDraftFilter = function() {
+  const search = (document.getElementById('gDraftSearch')?.value || '').toLowerCase();
+  const pos    = window._gDraftPos || 'ALL';
+  window._gDraftSearch = search;
+  document.querySelectorAll('#gDraftPlayerList [data-player-row]').forEach(row => {
+    const matchPos  = pos === 'ALL' || row.dataset.pos === pos;
+    const matchName = !search || row.dataset.name.includes(search);
+    row.style.display = matchPos && matchName ? '' : 'none';
+  });
+};
+
+window.gDraftFilterPos = function(pos) {
+  window._gDraftPos = pos;
+  document.querySelectorAll('[onclick^="window.gDraftFilterPos"]').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick') === `window.gDraftFilterPos('${pos}')`);
+  });
+  window.gDraftFilter();
+  document.getElementById('gDraftSearch')?.focus();
+};
 
 // ── Pick handler ──────────────────────────────────────────────
 window.gMakePick = async function(playerName, pos) {
