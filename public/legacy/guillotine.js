@@ -410,13 +410,17 @@ function _buildDraftingHTML(el) {
   const myTeams = teams.filter(t => t.owner_user_id === uid).sort((a, b) => a.draft_slot - b.draft_slot);
   const isMyTurn = !isDone && onClock && myTeams.some(t => t.id === onClock.id);
 
-  // Each team's next pick and how many picks away it is
-  const myNextPicks = myTeams.map(team => {
-    const next = picks
+  // All remaining picks for the user's teams through end of draft
+  const myAllPicks = [];
+  for (const team of myTeams) {
+    const futurePicks = picks
       .filter(p => p.team_id === team.id && !p.player_name && p.overall_pick >= cp)
-      .sort((a, b) => a.overall_pick - b.overall_pick)[0];
-    return { team, nextPick: next?.overall_pick ?? null, picksAway: next ? next.overall_pick - cp : null };
-  }).filter(m => m.nextPick != null).sort((a, b) => a.picksAway - b.picksAway);
+      .sort((a, b) => a.overall_pick - b.overall_pick);
+    for (const fp of futurePicks) {
+      myAllPicks.push({ team, nextPick: fp.overall_pick, picksAway: fp.overall_pick - cp });
+    }
+  }
+  myAllPicks.sort((a, b) => a.picksAway - b.picksAway);
 
   // Roster cards
   const rosterCardsHTML = myTeams.length
@@ -429,18 +433,17 @@ function _buildDraftingHTML(el) {
   // picksAway=0 means it's literally your pick right now; marker goes before index 0.
   // picksAway=N means after N other picks you're on the clock; marker goes before index N.
   let playerListHTML = '';
-  const markerInserted = new Set();
 
   pool.forEach((p, idx) => {
-    for (const m of myNextPicks) {
-      if (m.picksAway === idx && !markerInserted.has(m.team.id)) {
-        markerInserted.add(m.team.id);
+    for (const m of myAllPicks) {
+      if (m.picksAway === idx) {
         const mc = colorMap[m.team.owner_name] || '#1e3a5f';
+        const round = Math.ceil(m.nextPick / 14);
         const label = m.picksAway === 0
-          ? `🎯 ${m.team.team_name} — ON THE CLOCK! (Pick #${m.nextPick})`
-          : `▶ ${m.team.team_name} — Pick #${m.nextPick} (${m.picksAway} picks away)`;
+          ? `🎯 ${m.team.team_name} — ON THE CLOCK! (Pick #${m.nextPick} · Rd ${round})`
+          : `▶ ${m.team.team_name} — Pick #${m.nextPick} · Rd ${round} (${m.picksAway} away)`;
         playerListHTML += `
-          <div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:${mc}18;border-top:2px solid ${mc};border-bottom:2px solid ${mc};margin:4px 0;">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 16px;background:${mc}12;border-top:2px solid ${mc};border-bottom:1px solid ${mc}40;margin:2px 0;">
             <span style="font-size:11px;font-weight:700;color:${mc};letter-spacing:0.04em;">${label}</span>
           </div>`;
       }
