@@ -127,17 +127,18 @@ a { text-decoration: none; }
 
 .g-pos-tabs { display: flex; gap: 4px; }
 .g-pos-tab {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
-  padding: 3px 7px;
+  padding: 4px 8px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.g-pos-tab.active, .g-pos-tab:hover { background: rgba(255,255,255,0.4); }
+.g-pos-tab:hover { background: #e2e8f0; color: #1e293b; }
+.g-pos-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
 
 .g-draft-pool input[type="text"] { margin: 8px; width: calc(100% - 16px); }
 
