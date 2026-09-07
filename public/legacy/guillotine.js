@@ -232,7 +232,7 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
   for (const p of picks) pickMap[p.overall_pick] = p;
 
   const headers = sorted.map(t =>
-    `<th class="g-board-th" title="${t.owner_name}">${t.team_name}<div class="g-board-th-owner">${t.owner_name}</div></th>`
+    `<th class="g-board-th" title="${t.owner_name}">${t.team_name}</th>`
   ).join('');
 
   const rows = [];
