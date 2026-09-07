@@ -276,18 +276,17 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
           ${photoUrl ? `<img src="${photoUrl}" referrerpolicy="no-referrer" onerror="this.remove();this.previousElementSibling.style.display=''" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;">` : ''}
         </div>`;
         cellContent = `
-          <div style="display:flex;align-items:flex-start;gap:4px;height:100%;">
-            ${headshot}
-            <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:100%;padding:2px 0;">
-              <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;height:100%;gap:2px;">
+            <div style="display:flex;align-items:flex-start;gap:4px;">
+              ${headshot}
+              <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;flex:1;min-width:0;">
                 <span class="pos-badge pos-${pos}" style="font-size:8px;padding:1px 3px;">${pos}</span>
                 ${logoImg}
                 <span class="g-board-team-badge" style="background:${teamColor};font-size:8px;">${teamAbbr}</span>
                 <span class="g-board-pick-num" style="margin-left:auto">#${overall}</span>
               </div>
-              <span class="g-board-player">${p.player_name}</span>
-              </div>
             </div>
+            <span class="g-board-player" style="white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${p.player_name}</span>
           </div>`;
       } else {
         cellContent = `<span class="g-board-pick-num" style="color:#d1d5db">#${overall}</span>`;
