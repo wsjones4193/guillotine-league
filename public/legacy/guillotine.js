@@ -7,16 +7,16 @@ let _gCurrentPage = 'draft';
 
 // ── URL ↔ page mapping ────────────────────────────────────────
 const _PAGE_TO_URL = {
-  draft: '/draftboard', available: '/available',
+  home: '/', draft: '/draftboard', available: '/available',
   drafting: '/drafting', teams: '/teams', setup: '/setup',
 };
 
 function _pageFromPath(path) {
   const map = {
-    '/draftboard': 'draft', '/available': 'available',
+    '/': 'home', '/draftboard': 'draft', '/available': 'available',
     '/drafting': 'drafting', '/teams': 'teams', '/setup': 'setup',
   };
-  return map[path] || 'draft';
+  return map[path] || 'home';
 }
 
 // ── Navigation ────────────────────────────────────────────────
@@ -36,6 +36,7 @@ function navigate(page, pushState = true) {
   const link = document.querySelector(`.g-nav-link[href="${_PAGE_TO_URL[page]}"]`);
   if (link) link.classList.add('active');
 
+  if (page === 'home')      renderHome();
   if (page === 'draft')     renderGuillotineDraft();
   if (page === 'available') renderAvailablePlayers();
   if (page === 'drafting')  renderDrafting();
@@ -180,6 +181,16 @@ function _ownerColorMap(teams) {
   const map = {};
   owners.forEach((o, i) => map[o] = GUILD_OWNER_PALETTE[i % GUILD_OWNER_PALETTE.length]);
   return map;
+}
+
+// ── Home Page ─────────────────────────────────────────────────
+function renderHome() {
+  const el = document.getElementById('page-home');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);">
+      <img src="/logo-words.png" style="max-width:480px;width:90%;object-fit:contain;">
+    </div>`;
 }
 
 // ── Board Page ────────────────────────────────────────────────

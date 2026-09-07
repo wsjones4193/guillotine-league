@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/",           "destination": "/index.html" },
     { "source": "/draftboard", "destination": "/index.html" },
     { "source": "/available",  "destination": "/index.html" },
     { "source": "/drafting",   "destination": "/index.html" },
