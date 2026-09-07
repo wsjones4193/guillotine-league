@@ -656,43 +656,34 @@ async function renderGuillotineTeams() {
     ownerMap[t.owner_name].push(t);
   }
 
-  const ownerRows = Object.entries(ownerMap).map(([owner, ownerTeams]) => {
-    const color = colorMap[owner];
-    const teamCards = ownerTeams.map(t => {
-      const roster = _guildRosterForTeam(t.id, picks);
-      const rows = roster.map(({ slot, pick }) => `
-        <div style="display:flex;align-items:center;gap:4px;padding:3px 8px;border-bottom:1px solid #f3f4f6;min-height:22px;">
-          <span style="font-size:9px;font-weight:700;color:#9ca3af;width:28px;flex-shrink:0;">${slot}</span>
-          ${pick
-            ? `<span class="pos-badge pos-${pick.pos}" style="font-size:8px;padding:0 3px;line-height:14px;">${pick.pos}</span>
-               <span style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${pick.player_name}</span>`
-            : `<span style="font-size:11px;color:#d1d5db;">—</span>`}
-        </div>`).join('');
-
-      return `
-        <div style="flex:1;min-width:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
-          <div style="background:${color};padding:6px 8px;">
-            <div style="font-size:12px;font-weight:700;color:#fff;">${t.team_name}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.7);">Slot ${t.draft_slot}</div>
-          </div>
-          <div>${rows}</div>
-        </div>`;
-    }).join('');
+  const allTeams = [...teams].sort((a, b) => a.draft_slot - b.draft_slot);
+  const teamCards = allTeams.map(t => {
+    const color  = colorMap[t.owner_name];
+    const roster = _guildRosterForTeam(t.id, picks);
+    const rows   = roster.map(({ slot, pick }) => `
+      <div style="display:flex;align-items:center;gap:3px;padding:2px 6px;border-bottom:1px solid #f3f4f6;min-height:18px;">
+        <span style="font-size:8px;font-weight:700;color:#9ca3af;width:24px;flex-shrink:0;">${slot}</span>
+        ${pick
+          ? `<span class="pos-badge pos-${pick.pos}" style="font-size:7px;padding:0 3px;line-height:13px;">${pick.pos}</span>
+             <span style="font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${pick.player_name}</span>`
+          : `<span style="font-size:10px;color:#d1d5db;">—</span>`}
+      </div>`).join('');
 
     return `
-      <div style="margin-bottom:12px;">
-        <div style="padding:5px 10px;font-size:11px;font-weight:700;color:#fff;background:${color};letter-spacing:0.06em;border-radius:6px 6px 0 0;text-transform:uppercase;">
-          ${owner}
+      <div style="min-width:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+        <div style="background:${color};padding:5px 7px;">
+          <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.team_name}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.65);">${t.owner_name} · S${t.draft_slot}</div>
         </div>
-        <div style="display:flex;gap:10px;padding:8px;background:#f3ede4;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;">
-          ${teamCards}
-        </div>
+        <div>${rows}</div>
       </div>`;
   }).join('');
 
   el.innerHTML = `
-    <div style="padding:12px 16px;overflow-y:auto;height:calc(100vh - 56px);">
-      ${ownerRows}
+    <div style="padding:10px 12px;overflow:auto;height:calc(100vh - 56px);">
+      <div style="display:grid;grid-template-columns:repeat(14,1fr);gap:6px;min-width:900px;">
+        ${teamCards}
+      </div>
     </div>`;
 }
 
