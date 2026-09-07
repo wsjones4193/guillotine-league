@@ -138,7 +138,14 @@ a { text-decoration: none; }
   transition: background 0.15s, color 0.15s;
 }
 .g-pos-tab:hover { background: #e2e8f0; color: #1e293b; }
-.g-pos-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+.g-pos-tab.active               { color: #fff; border-color: transparent; }
+.g-pos-tab[onclick*="'ALL'"].active  { background: #374151; }
+.g-pos-tab[onclick*="'QB'"].active   { background: #1d4ed8; }
+.g-pos-tab[onclick*="'RB'"].active   { background: #047857; }
+.g-pos-tab[onclick*="'WR'"].active   { background: #b45309; }
+.g-pos-tab[onclick*="'TE'"].active   { background: #6d28d9; }
+.g-pos-tab[onclick*="'K'"].active    { background: #475569; }
+.g-pos-tab[onclick*="'DEF'"].active  { background: #0e7490; }
 
 .g-draft-pool input[type="text"] { margin: 8px; width: calc(100% - 16px); }
 
