@@ -5,16 +5,35 @@ window.state = window.state || { guillotine: null };
 let _gChannel     = null;
 let _gCurrentPage = 'draft';
 
+// ── URL ↔ page mapping ────────────────────────────────────────
+const _PAGE_TO_URL = {
+  draft: '/draftboard', available: '/available',
+  drafting: '/drafting', teams: '/teams', setup: '/setup',
+};
+
+function _pageFromPath(path) {
+  const map = {
+    '/draftboard': 'draft', '/available': 'available',
+    '/drafting': 'drafting', '/teams': 'teams', '/setup': 'setup',
+  };
+  return map[path] || 'draft';
+}
+
 // ── Navigation ────────────────────────────────────────────────
-function navigate(page) {
+function navigate(page, pushState = true) {
   _gCurrentPage = page;
+
+  if (pushState) {
+    history.pushState({ page }, '', _PAGE_TO_URL[page] || '/draftboard');
+  }
+
   document.querySelectorAll('.g-page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.g-nav-link').forEach(el => el.classList.remove('active'));
 
   const pageEl = document.getElementById(`page-${page}`);
   if (pageEl) pageEl.classList.add('active');
 
-  const link = document.querySelector(`.g-nav-link[onclick*="'${page}'"]`);
+  const link = document.querySelector(`.g-nav-link[href="${_PAGE_TO_URL[page]}"]`);
   if (link) link.classList.add('active');
 
   if (page === 'draft')     renderGuillotineDraft();
@@ -23,6 +42,10 @@ function navigate(page) {
   if (page === 'teams')     renderGuillotineTeams();
   if (page === 'setup')     renderGuillotineSetup();
 }
+
+window.addEventListener('popstate', e => {
+  navigate(e.state?.page || _pageFromPath(location.pathname), false);
+});
 
 function _reRenderCurrentPage() {
   if (_gCurrentPage === 'draft')     _buildGuillotineBoardHTML(document.getElementById('page-draft'));
@@ -792,7 +815,8 @@ window.resetGuillotineDraft = async function() {
 
 // ── Boot ──────────────────────────────────────────────────────
 window.appInit = function() {
-  navigate('draft');
+  const startPage = _pageFromPath(location.pathname);
+  navigate(startPage, false); // don't push — we're already on this URL
 };
 
 if (window.__appReady) window.appInit();

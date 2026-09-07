@@ -1,4 +1,11 @@
 {
+  "rewrites": [
+    { "source": "/draftboard", "destination": "/index.html" },
+    { "source": "/available",  "destination": "/index.html" },
+    { "source": "/drafting",   "destination": "/index.html" },
+    { "source": "/teams",      "destination": "/index.html" },
+    { "source": "/setup",      "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
