@@ -252,7 +252,7 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
     let cells = '';
     for (let slot = 1; slot <= NUM; slot++) {
       const pickInRound = isOdd ? slot : (NUM + 1 - slot);
-      const overall     = (round - 1) * NUM + slot;
+      const overall     = (round - 1) * NUM + pickInRound;
       const p           = pickMap[overall];
       const isCurrent   = overall === currentPick;
 
