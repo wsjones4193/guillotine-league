@@ -279,12 +279,13 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
           <div style="display:flex;align-items:flex-start;gap:4px;height:100%;">
             ${headshot}
             <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:100%;padding:2px 0;">
-              <span class="g-board-player">${p.player_name}</span>
               <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
                 <span class="pos-badge pos-${pos}" style="font-size:8px;padding:1px 3px;">${pos}</span>
                 ${logoImg}
                 <span class="g-board-team-badge" style="background:${teamColor};font-size:8px;">${teamAbbr}</span>
                 <span class="g-board-pick-num" style="margin-left:auto">#${overall}</span>
+              </div>
+              <span class="g-board-player">${p.player_name}</span>
               </div>
             </div>
           </div>`;
