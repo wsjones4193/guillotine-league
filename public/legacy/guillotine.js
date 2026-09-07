@@ -406,8 +406,13 @@ function _buildDraftingHTML(el) {
   const pool    = _guildPlayerPool(picks);
   const colorMap = _ownerColorMap(teams);
 
-  // User's 2 teams
-  const myTeams = teams.filter(t => t.owner_user_id === uid).sort((a, b) => a.draft_slot - b.draft_slot);
+  // Owner switcher: default to logged-in user, can act on behalf of any owner
+  const allOwners = [...new Set(teams.map(t => t.owner_name))].sort();
+  const actingAs  = window._gDraftActingAs || null;
+  const myTeams   = (actingAs
+    ? teams.filter(t => t.owner_name === actingAs)
+    : teams.filter(t => t.owner_user_id === uid)
+  ).sort((a, b) => a.draft_slot - b.draft_slot);
   const isMyTurn = !isDone && onClock && myTeams.some(t => t.id === onClock.id);
 
   // All remaining picks for the user's teams through end of draft
@@ -474,8 +479,14 @@ function _buildDraftingHTML(el) {
 
       <!-- Left: user's rosters -->
       <div style="width:300px;flex-shrink:0;overflow-y:auto;border-right:1px solid #e5e7eb;background:#f9fafb;">
-        <div style="padding:10px 12px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid #e5e7eb;">
-          My Teams
+        <div style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">
+          <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Managing</div>
+          <select onchange="window.gDraftActingAs(this.value)"
+            style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:6px 8px;font-size:13px;font-weight:600;background:#fff;cursor:pointer;">
+            <option value="">My Teams</option>
+            ${allOwners.map(o => `<option value="${o}" ${actingAs === o ? 'selected' : ''}>${o}</option>`).join('')}
+          </select>
+          ${actingAs ? `<div style="margin-top:5px;font-size:11px;color:#f59e0b;font-weight:600;">⚡ Picking for ${actingAs}</div>` : ''}
         </div>
         <div style="padding:10px;">
           ${rosterCardsHTML}
@@ -557,6 +568,12 @@ function _buildRosterCard(team, picks, showOwner, nextPick, headerColor) {
       </div>
     </div>`;
 }
+
+// ── Drafting page owner switcher ─────────────────────────────
+window.gDraftActingAs = function(ownerName) {
+  window._gDraftActingAs = ownerName || null;
+  if (window.state.guillotine) _buildDraftingHTML(document.getElementById('page-drafting'));
+};
 
 // ── Drafting page filter handlers ────────────────────────────
 window.gDraftFilter = function() {
