@@ -285,7 +285,11 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
         : p?.player_name ? 'g-board-cell g-board-filled'
         : 'g-board-cell g-board-empty';
 
-      cells += `<td class="${cls}" style="${cellStyle}">${cellContent}</td>`;
+      const ctxMenu = (p?.player_name && window.__userRole === 'admin')
+        ? `oncontextmenu="window.gShowRemoveMenu(event,${overall},'${p.player_name.replace(/'/g,"\\'")}');return false;"`
+        : '';
+
+      cells += `<td class="${cls}" style="${cellStyle}" ${ctxMenu}>${cellContent}</td>`;
     }
     rows.push(`
       <tr>
@@ -887,6 +891,62 @@ window.resetGuillotineDraft = async function() {
     showToast('Draft reset.');
     renderGuillotineSetup();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+};
+
+// ── Admin: remove pick context menu ──────────────────────────
+(function _initRemoveMenu() {
+  const menu = document.createElement('div');
+  menu.id = 'gRemoveMenu';
+  menu.style.cssText = `
+    display:none;position:fixed;z-index:9999;
+    background:#fff;border:1px solid #e5e7eb;border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:16px 20px;min-width:240px;
+  `;
+  menu.innerHTML = `
+    <div id="gRemoveMenuLabel" style="font-size:13px;font-weight:600;color:#111;margin-bottom:4px;"></div>
+    <div id="gRemoveMenuSub"   style="font-size:11px;color:#6b7280;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button id="gRemoveYes" style="flex:1;background:#B51217;color:#fff;border:none;border-radius:6px;padding:8px;font-size:13px;font-weight:700;cursor:pointer;">Remove Pick</button>
+      <button id="gRemoveNo"  style="flex:1;background:#f1f5f9;color:#374151;border:1px solid #e5e7eb;border-radius:6px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>`;
+  document.body.appendChild(menu);
+
+  document.getElementById('gRemoveNo').onclick  = () => { menu.style.display = 'none'; };
+  document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.style.display = 'none'; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') menu.style.display = 'none'; });
+})();
+
+window.gShowRemoveMenu = function(e, overallPick, playerName) {
+  e.preventDefault();
+  const menu = document.getElementById('gRemoveMenu');
+  document.getElementById('gRemoveMenuLabel').textContent = playerName;
+  document.getElementById('gRemoveMenuSub').textContent   = `Pick #${overallPick} · Round ${Math.ceil(overallPick / 14)}`;
+  document.getElementById('gRemoveYes').onclick = () => {
+    menu.style.display = 'none';
+    window.gDoRemovePick(overallPick, playerName);
+  };
+  // Position near cursor, keep inside viewport
+  const x = Math.min(e.clientX, window.innerWidth  - 260);
+  const y = Math.min(e.clientY, window.innerHeight - 130);
+  menu.style.left    = x + 'px';
+  menu.style.top     = y + 'px';
+  menu.style.display = 'block';
+};
+
+window.gDoRemovePick = async function(overallPick, playerName) {
+  const g = window.state.guillotine;
+  if (!g) return;
+  try {
+    await window.db.removeGuillotinePick(g.league.id, overallPick);
+    // Optimistic update
+    const pick = g.picks.find(p => p.overall_pick === overallPick);
+    if (pick) { pick.player_name = null; pick.pos = null; }
+    if (overallPick < g.league.current_pick) g.league.current_pick = overallPick;
+    _reRenderCurrentPage();
+    showToast(`Removed ${playerName}`);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 };
 
 // ── Boot ──────────────────────────────────────────────────────

@@ -144,6 +144,29 @@ export async function makeGuillotinePick(leagueId, overallPick, playerName, pos)
   if (le) throw le;
 }
 
+export async function removeGuillotinePick(leagueId, overallPick) {
+  const { error: pe } = await supabase
+    .from('guillotine_picks')
+    .update({ player_name: null, pos: null, picked_at: null, picked_by_id: null, picked_by_name: null })
+    .eq('league_id', leagueId)
+    .eq('overall_pick', overallPick);
+  if (pe) throw pe;
+
+  // Rewind current_pick to this slot if it's earlier than where we are
+  const { data: rows } = await supabase
+    .from('guillotine_league')
+    .select('current_pick')
+    .eq('id', leagueId)
+    .single();
+  if (rows && overallPick < rows.current_pick) {
+    const { error: le } = await supabase
+      .from('guillotine_league')
+      .update({ current_pick: overallPick })
+      .eq('id', leagueId);
+    if (le) throw le;
+  }
+}
+
 export async function updateGuillotineTeam(teamId, fields) {
   const { error } = await supabase.from('guillotine_teams').update(fields).eq('id', teamId);
   if (error) throw error;
