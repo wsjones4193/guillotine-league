@@ -672,7 +672,7 @@ async function renderGuillotineTeams() {
       <div style="min-width:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
         <div style="background:${color};padding:5px 7px;">
           <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.team_name}</div>
-          <div style="font-size:9px;color:rgba(255,255,255,0.65);">${t.owner_name} · S${t.draft_slot}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.65);">Pick #${t.draft_slot}</div>
         </div>
         <div>${rows}</div>
       </div>`;
