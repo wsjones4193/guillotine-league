@@ -471,13 +471,20 @@ function _buildDraftingHTML(el) {
       }
     }
 
+    const queued  = window._gQueue.has(p.name);
+    const rowBg   = queued ? 'background:#fffbeb;border-left:3px solid #f59e0b;' : '';
+    const starBtn = `<button onclick="window.gToggleQueue('${p.name.replace(/'/g,"\\'")}',this)"
+      style="background:none;border:none;cursor:pointer;font-size:15px;padding:0 2px;line-height:1;flex-shrink:0;"
+      title="${queued ? 'Remove from queue' : 'Add to queue'}">${queued ? '★' : '☆'}</button>`;
+
     playerListHTML += `
       <div data-player-row data-pos="${p.pos}" data-name="${p.name.toLowerCase()}"
-           style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
+           style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;${rowBg}">
         <span style="color:#9ca3af;font-size:11px;width:34px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
         <span class="pos-badge pos-${p.pos}">${p.pos}</span>
         <span style="flex:1;font-size:13px;font-weight:500;">${p.name}</span>
         <span style="font-size:12px;color:#9ca3af;margin-right:4px;">${p.team}</span>
+        ${starBtn}
         ${isMyTurn
           ? `<button class="g-pick-btn" onclick="window.gMakePick('${p.name.replace(/'/g,"\\'")}','${p.pos}')">Pick</button>`
           : `<span style="width:46px;display:inline-block;"></span>`}
@@ -586,6 +593,41 @@ function _buildRosterCard(team, picks, showOwner, nextPick, headerColor) {
       </div>
     </div>`;
 }
+
+// ── Queue (watchlist) ─────────────────────────────────────────
+(function _initQueue() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('guillotine_queue_v1') || '[]');
+    window._gQueue = new Set(saved);
+  } catch(_) { window._gQueue = new Set(); }
+})();
+
+function _saveQueue() {
+  try { localStorage.setItem('guillotine_queue_v1', JSON.stringify([...window._gQueue])); } catch(_) {}
+}
+
+window.gToggleQueue = function(playerName, btn) {
+  const queued = window._gQueue.has(playerName);
+  if (queued) {
+    window._gQueue.delete(playerName);
+  } else {
+    window._gQueue.add(playerName);
+  }
+  _saveQueue();
+  // Update the row in-place without re-rendering
+  const row = btn.closest('[data-player-row]');
+  if (row) {
+    if (!queued) {
+      row.style.background = '#fffbeb';
+      row.style.borderLeft  = '3px solid #f59e0b';
+    } else {
+      row.style.background = '';
+      row.style.borderLeft  = '';
+    }
+  }
+  btn.textContent = queued ? '☆' : '★';
+  btn.title = queued ? 'Add to queue' : 'Remove from queue';
+};
 
 // ── Drafting page owner switcher ─────────────────────────────
 window.gDraftActingAs = function(ownerName) {
