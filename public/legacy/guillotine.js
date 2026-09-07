@@ -560,24 +560,53 @@ async function renderGuillotineTeams() {
 
   const { teams, picks } = window.state.guillotine;
   const colorMap = _ownerColorMap(teams);
+
+  // Group by owner, preserve slot order within each owner
   const ownerMap = {};
-  for (const t of teams) {
+  for (const t of [...teams].sort((a, b) => a.draft_slot - b.draft_slot)) {
     if (!ownerMap[t.owner_name]) ownerMap[t.owner_name] = [];
     ownerMap[t.owner_name].push(t);
   }
 
-  const html = Object.entries(ownerMap).map(([owner, ownerTeams]) => `
-    <div class="g-owner-group">
-      <div class="g-owner-group-header">${owner}</div>
-      <div class="g-owner-group-teams">
-        ${ownerTeams.map(t => _buildRosterCard(t, picks, false, null, colorMap[owner])).join('')}
-      </div>
-    </div>`).join('');
+  const cols = Object.entries(ownerMap).map(([owner, ownerTeams]) => {
+    const color = colorMap[owner];
+    const teamCards = ownerTeams.map(t => {
+      const roster = _guildRosterForTeam(t.id, picks);
+      const rows = roster.map(({ slot, pick }) => `
+        <div style="display:flex;align-items:center;gap:4px;padding:3px 8px;border-bottom:1px solid #f3f4f6;min-height:22px;">
+          <span style="font-size:9px;font-weight:700;color:#9ca3af;width:28px;flex-shrink:0;">${slot}</span>
+          ${pick
+            ? `<span class="pos-badge pos-${pick.pos}" style="font-size:8px;padding:0 3px;line-height:14px;">${pick.pos}</span>
+               <span style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${pick.player_name}</span>`
+            : `<span style="font-size:11px;color:#d1d5db;">—</span>`}
+        </div>`).join('');
+
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:8px;">
+          <div style="background:${color};padding:6px 8px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#fff;">${t.team_name}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.7);">Slot ${t.draft_slot}</div>
+            </div>
+          </div>
+          <div>${rows}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div style="display:flex;flex-direction:column;min-width:0;">
+        <div style="padding:6px 8px;font-size:11px;font-weight:700;color:#fff;background:${color};opacity:0.85;letter-spacing:0.05em;border-radius:4px 4px 0 0;text-align:center;margin-bottom:4px;">
+          ${owner}
+        </div>
+        ${teamCards}
+      </div>`;
+  }).join('');
 
   el.innerHTML = `
-    <div class="page-inner g-teams-layout">
-      <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;">All Teams</h2>
-      ${html}
+    <div style="padding:12px 16px;overflow-y:auto;height:calc(100vh - 56px);">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;min-width:0;">
+        ${cols}
+      </div>
     </div>`;
 }
 
