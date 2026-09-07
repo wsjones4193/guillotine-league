@@ -2,10 +2,12 @@
 // Runs after data.js and src/main.js (cloud init) have loaded.
 
 window.state = window.state || { guillotine: null };
-let _gChannel = null;
+let _gChannel     = null;
+let _gCurrentPage = 'draft';
 
 // ── Navigation ────────────────────────────────────────────────
 function navigate(page) {
+  _gCurrentPage = page;
   document.querySelectorAll('.g-page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.g-nav-link').forEach(el => el.classList.remove('active'));
 
@@ -15,9 +17,25 @@ function navigate(page) {
   const link = document.querySelector(`.g-nav-link[onclick*="'${page}'"]`);
   if (link) link.classList.add('active');
 
-  if (page === 'draft')  renderGuillotineDraft();
-  if (page === 'teams')  renderGuillotineTeams();
-  if (page === 'setup')  renderGuillotineSetup();
+  if (page === 'draft')     renderGuillotineDraft();
+  if (page === 'available') renderAvailablePlayers();
+  if (page === 'drafting')  renderDrafting();
+  if (page === 'teams')     renderGuillotineTeams();
+  if (page === 'setup')     renderGuillotineSetup();
+}
+
+function _reRenderCurrentPage() {
+  if (_gCurrentPage === 'draft')     _buildGuillotineBoardHTML(document.getElementById('page-draft'));
+  if (_gCurrentPage === 'available') _buildAvailableHTML(document.getElementById('page-available'));
+  if (_gCurrentPage === 'drafting')  _buildDraftingHTML(document.getElementById('page-drafting'));
+}
+
+function _ensureSubscription(leagueId) {
+  if (_gChannel) return;
+  _gChannel = window.db.subscribeToLeague(leagueId, async () => {
+    window.state.guillotine = await window.db.loadGuillotineLeague();
+    _reRenderCurrentPage();
+  });
 }
 
 // ── Toast ─────────────────────────────────────────────────────
@@ -58,6 +76,11 @@ const _BOARD_POS_BG = {
   TE: '#f3e8ff', K:  '#f1f5f9', DEF: '#e0e7ff',
 };
 
+const _POS_COLOR = {
+  QB: '#1d4ed8', RB: '#047857', WR: '#b45309',
+  TE: '#6d28d9', K:  '#475569', DEF: '#0e7490',
+};
+
 // ── Helpers ───────────────────────────────────────────────────
 function _guildCurrentUserId() {
   return window.db?.getCurrentUserId?.() || null;
@@ -70,7 +93,7 @@ function _guildCurrentUserOwns(team) {
 
 function _guildCurrentOnClock(league, picks, teams) {
   if (!league || league.draft_status !== 'active') return null;
-  const cp = league.current_pick;
+  const cp   = league.current_pick;
   const pick = (picks || []).find(p => p.overall_pick === cp);
   if (!pick) return null;
   return teams.find(t => t.id === pick.team_id) || null;
@@ -79,7 +102,7 @@ function _guildCurrentOnClock(league, picks, teams) {
 function _guildPlayerPool(picks) {
   const picked = new Set((picks || []).filter(p => p.player_name).map(p => p.player_name));
   const adpMap = new Map((window.ADP_DATA || []).map(e => [e.fullName, e.adp]));
-  const pool = [];
+  const pool   = [];
 
   for (const pos of ['QB','RB','WR','TE']) {
     for (const p of (window.NFL_DATA?.players[pos] || [])) {
@@ -114,24 +137,29 @@ function _guildPlayerTeam(playerName, pos) {
 
 function _guildRosterForTeam(teamId, picks) {
   const teamPicks = (picks || []).filter(p => p.team_id === teamId && p.player_name);
-  const slots = [...GUILLOTINE_ROSTER_SLOTS];
+  const slots  = [...GUILLOTINE_ROSTER_SLOTS];
   const filled = Array(slots.length).fill(null);
-  const assigned = new Set();
 
   for (const pk of teamPicks) {
     const pos = pk.pos;
-    // Try exact slot first, then FLEX
     let idx = slots.findIndex((s, i) => s === pos && !filled[i]);
     if (idx === -1 && ['RB','WR','TE'].includes(pos)) {
       idx = slots.findIndex((s, i) => s === 'FLEX' && !filled[i]);
     }
     if (idx === -1) idx = slots.findIndex((s, i) => s === 'BN' && !filled[i]);
-    if (idx !== -1) { filled[idx] = pk; assigned.add(pk.overall_pick); }
+    if (idx !== -1) filled[idx] = pk;
   }
   return slots.map((slot, i) => ({ slot, pick: filled[i] }));
 }
 
-// ── Draft Board ───────────────────────────────────────────────
+function _ownerColorMap(teams) {
+  const owners = [...new Set(teams.map(t => t.owner_name))].sort();
+  const map = {};
+  owners.forEach((o, i) => map[o] = GUILD_OWNER_PALETTE[i % GUILD_OWNER_PALETTE.length]);
+  return map;
+}
+
+// ── Board Page ────────────────────────────────────────────────
 async function renderGuillotineDraft() {
   const el = document.getElementById('page-draft');
   try {
@@ -149,93 +177,33 @@ async function renderGuillotineDraft() {
     return;
   }
 
-  _buildGuillotineDraftHTML(el);
-
-  // Live updates — tear down any existing subscription first
-  if (_gChannel) window.db.unsubscribeLeague(_gChannel);
-  _gChannel = window.db.subscribeToLeague(window.state.guillotine.league.id, async () => {
-    window.state.guillotine = await window.db.loadGuillotineLeague();
-    _buildGuillotineDraftHTML(el);
-  });
+  _buildGuillotineBoardHTML(el);
+  _ensureSubscription(window.state.guillotine.league.id);
 }
 
-function _buildGuillotineDraftHTML(el) {
+function _buildGuillotineBoardHTML(el) {
   const { league, teams, picks } = window.state.guillotine;
-  const uid      = _guildCurrentUserId();
-  const onClock  = _guildCurrentOnClock(league, picks, teams);
-  const pool     = _guildPlayerPool(picks);
-  const cp       = league.current_pick;
-  const isDone   = league.draft_status === 'complete' || cp > 196;
-  const isMyTurn = onClock && _guildCurrentUserOwns(onClock);
+  const cp      = league.current_pick;
+  const isDone  = league.draft_status === 'complete' || cp > 196;
+  const onClock = _guildCurrentOnClock(league, picks, teams);
 
   el.innerHTML = `
-    <div class="g-draft-layout">
-      <div class="g-draft-panel g-draft-pool">
-        <div class="g-panel-header">
-          <span>Available Players</span>
-          <div class="g-pos-tabs">
-            <button class="g-pos-tab active" onclick="window.gFilterPos('ALL',this)">ALL</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('QB',this)">QB</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('RB',this)">RB</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('WR',this)">WR</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('TE',this)">TE</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('K',this)">K</button>
-            <button class="g-pos-tab" onclick="window.gFilterPos('DEF',this)">DEF</button>
-          </div>
-        </div>
-        <input type="text" id="gPlayerSearch" placeholder="Search players…"
-          oninput="window.gFilterPlayers()"
-          style="width:calc(100%-16px);margin:8px;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;">
-        <div id="gPlayerList" class="g-player-list">
-          ${_buildPoolRows(pool, isMyTurn, onClock, league)}
-        </div>
+    <div style="padding:12px 16px;">
+      ${isDone
+        ? '<div class="g-onclock-banner" style="background:#16a34a">✅ Draft Complete!</div>'
+        : `<div class="g-onclock-banner">
+             Pick ${cp} of 196 · Round ${Math.ceil(cp/14)} · ${onClock
+               ? `ON THE CLOCK: <strong>${onClock.owner_name}</strong> — ${onClock.team_name}`
+               : 'Draft Pending'}
+           </div>`}
+      <div class="g-board-scroll">
+        ${_buildSnakeBoardGrid(teams, picks, cp)}
       </div>
-
-      <div class="g-draft-panel g-draft-center">
-        <div class="g-panel-header">Draft Board</div>
-        ${isDone
-          ? '<div class="g-onclock-banner" style="background:#16a34a">✅ Draft Complete!</div>'
-          : `<div class="g-onclock-banner">
-               Pick ${cp} of 196 · Round ${Math.ceil(cp/14)} · ${onClock
-                 ? `ON THE CLOCK: <strong>${onClock.owner_name}</strong> — ${onClock.team_name}`
-                 : 'Draft Pending'}
-             </div>`}
-        <div class="g-board-scroll">
-          ${_buildSnakeBoardGrid(teams, picks, cp)}
-        </div>
-      </div>
-    </div>
-
-    <div class="g-teams-below">
-      ${_buildAllTeamsBelow(teams, picks, cp)}
     </div>`;
-
-  window._gPool     = pool;
-  window._gOnClock  = onClock;
-  window._gLeague   = league;
-  window._gIsMyTurn = isMyTurn;
-  window._gCurrentPos = window._gCurrentPos || 'ALL';
-  window.gFilterPos(window._gCurrentPos);
-}
-
-function _buildPoolRows(pool, isMyTurn, onClock, league) {
-  if (league.draft_status !== 'active') {
-    return '<p style="color:#9ca3af;font-size:13px;padding:8px">Draft is not active.</p>';
-  }
-  return pool.map(p => `
-    <div class="g-pool-row" data-pos="${p.pos}" data-name="${p.name.toLowerCase()}">
-      <span class="g-pool-adp">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
-      <span class="pos-badge pos-${p.pos}">${p.pos}</span>
-      <span class="g-pool-name">${p.name}</span>
-      <span class="g-pool-team">${p.team}</span>
-      ${isMyTurn
-        ? `<button class="g-pick-btn" onclick="window.gMakePick('${p.name.replace(/'/g,"\\'")}','${p.pos}')">Pick</button>`
-        : `<span class="g-pick-btn-disabled">${onClock ? '🔒' : ''}</span>`}
-    </div>`).join('');
 }
 
 function _buildSnakeBoardGrid(teams, picks, currentPick) {
-  const NUM = GUILLOTINE_NUM_TEAMS;
+  const NUM    = GUILLOTINE_NUM_TEAMS;
   const sorted = [...teams].sort((a, b) => a.draft_slot - b.draft_slot);
   const pickMap = {};
   for (const p of picks) pickMap[p.overall_pick] = p;
@@ -250,13 +218,13 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
     let cells = '';
     for (let slot = 1; slot <= NUM; slot++) {
       const pickInRound = isOdd ? slot : (NUM + 1 - slot);
-      const overall = (round - 1) * NUM + slot;
-      const p = pickMap[overall];
-      const isCurrent = overall === currentPick;
+      const overall     = (round - 1) * NUM + slot;
+      const p           = pickMap[overall];
+      const isCurrent   = overall === currentPick;
 
       let cellContent = '', cellStyle = '';
       if (p?.player_name) {
-        const pos = p.pos || '';
+        const pos      = p.pos || '';
         const teamAbbr = _guildPlayerTeam(p.player_name, pos);
         const teamColor = (teamAbbr && window.NFL_DATA?.teamColors?.[teamAbbr]) || '#6b7280';
         cellStyle = `background:${_BOARD_POS_BG[pos] || '#f9fafb'};`;
@@ -264,9 +232,9 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
         const logoImg = logoUrl
           ? `<img src="${logoUrl}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;">`
           : '';
-        const posColor = { QB:'#1d4ed8', RB:'#047857', WR:'#b45309', TE:'#6d28d9', K:'#475569', DEF:'#0e7490' }[pos] || '#6b7280';
-        const photoUrl = window.PLAYER_HEADSHOTS?.[p.player_name.toLowerCase()] || null;
-        const headshot = `<div class="g-board-headshot" style="background:#fff;border:1.5px solid ${posColor}30;position:relative;overflow:hidden;">
+        const posColor  = _POS_COLOR[pos] || '#6b7280';
+        const photoUrl  = window.PLAYER_HEADSHOTS?.[p.player_name.toLowerCase()] || null;
+        const headshot  = `<div class="g-board-headshot" style="background:#fff;border:1.5px solid ${posColor}30;position:relative;overflow:hidden;">
           <svg width="40" height="46" viewBox="0 0 40 46" fill="none" style="position:absolute;inset:0;width:100%;height:100%;${photoUrl ? 'display:none;' : ''}">
             <circle cx="20" cy="14" r="9" fill="${posColor}" opacity="0.4"/>
             <ellipse cx="20" cy="38" rx="14" ry="11" fill="${posColor}" opacity="0.4"/>
@@ -310,10 +278,230 @@ function _buildSnakeBoardGrid(teams, picks, currentPick) {
     </table>`;
 }
 
+// ── Available Players Page ────────────────────────────────────
+async function renderAvailablePlayers() {
+  const el = document.getElementById('page-available');
+  try {
+    window.state.guillotine = await window.db.loadGuillotineLeague();
+  } catch(e) {
+    el.innerHTML = `<div class="page-inner"><p style="color:#ef4444">Error: ${e.message}</p></div>`;
+    return;
+  }
+
+  if (!window.state.guillotine) {
+    el.innerHTML = `<div class="page-inner"><p style="color:#6b7280">No league set up yet.</p></div>`;
+    return;
+  }
+
+  _buildAvailableHTML(el);
+  _ensureSubscription(window.state.guillotine.league.id);
+}
+
+function _buildAvailableHTML(el) {
+  const { picks } = window.state.guillotine;
+  const pool = _guildPlayerPool(picks);
+  const currentPos = window._gAvailPos || 'ALL';
+  const posOrder   = ['QB','RB','WR','TE','K','DEF'];
+
+  const groups = { QB: [], RB: [], WR: [], TE: [], K: [], DEF: [] };
+  for (const p of pool) {
+    if (groups[p.pos]) groups[p.pos].push(p);
+  }
+
+  function buildRows(players) {
+    if (!players.length) return '<div style="padding:12px 16px;color:#9ca3af;font-size:13px;">None available</div>';
+    return players.map(p => `
+      <div class="g-pool-row" data-pos="${p.pos}" data-name="${p.name.toLowerCase()}"
+           style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
+        <span style="color:#9ca3af;font-size:11px;width:34px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
+        <span class="pos-badge pos-${p.pos}">${p.pos}</span>
+        <span style="flex:1;font-size:13px;font-weight:500;">${p.name}</span>
+        <span style="font-size:12px;color:#9ca3af;">${p.team}</span>
+      </div>`).join('');
+  }
+
+  let listHTML = '';
+  if (currentPos === 'ALL') {
+    for (const pos of posOrder) {
+      const players = groups[pos];
+      if (!players.length) continue;
+      const pc = _POS_COLOR[pos] || '#6b7280';
+      listHTML += `
+        <div style="background:${pc}12;border-left:3px solid ${pc};padding:6px 16px;font-size:11px;font-weight:700;color:${pc};letter-spacing:0.08em;margin-top:8px;">
+          ${pos} — ${players.length} available
+        </div>
+        ${buildRows(players)}`;
+    }
+  } else {
+    const pc = _POS_COLOR[currentPos] || '#6b7280';
+    listHTML = `
+      <div style="background:${pc}12;border-left:3px solid ${pc};padding:6px 16px;font-size:11px;font-weight:700;color:${pc};letter-spacing:0.08em;">
+        ${currentPos} — ${(groups[currentPos]||[]).length} available
+      </div>
+      ${buildRows(groups[currentPos] || [])}`;
+  }
+
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;height:calc(100vh - 56px);">
+      <div style="padding:10px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f9fafb;">
+        <div class="g-pos-tabs">
+          ${['ALL','QB','RB','WR','TE','K','DEF'].map(p =>
+            `<button class="g-pos-tab ${currentPos === p ? 'active' : ''}" onclick="window.gAvailFilterPos('${p}')">${p}</button>`
+          ).join('')}
+        </div>
+        <input type="text" id="gAvailSearch" placeholder="Search players…"
+          oninput="window.gAvailFilter()"
+          style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;width:180px;">
+        <span style="font-size:13px;color:#6b7280;margin-left:auto;">${pool.length} available</span>
+      </div>
+      <div id="gAvailList" style="flex:1;overflow-y:auto;padding-bottom:16px;">
+        ${listHTML}
+      </div>
+    </div>`;
+
+  // Restore search if returning to page
+  const searchEl = document.getElementById('gAvailSearch');
+  if (searchEl && window._gAvailSearch) {
+    searchEl.value = window._gAvailSearch;
+    window.gAvailFilter();
+  }
+}
+
+window.gAvailFilterPos = function(pos) {
+  window._gAvailPos = pos;
+  if (window.state.guillotine) _buildAvailableHTML(document.getElementById('page-available'));
+};
+
+window.gAvailFilter = function() {
+  const search = (document.getElementById('gAvailSearch')?.value || '').toLowerCase();
+  window._gAvailSearch = search;
+  document.querySelectorAll('#gAvailList .g-pool-row').forEach(row => {
+    row.style.display = !search || row.dataset.name.includes(search) ? '' : 'none';
+  });
+};
+
+// ── Drafting Page ─────────────────────────────────────────────
+async function renderDrafting() {
+  const el = document.getElementById('page-drafting');
+  try {
+    window.state.guillotine = await window.db.loadGuillotineLeague();
+  } catch(e) {
+    el.innerHTML = `<div class="page-inner"><p style="color:#ef4444">Error: ${e.message}</p></div>`;
+    return;
+  }
+
+  if (!window.state.guillotine) {
+    el.innerHTML = `<div class="page-inner"><p style="color:#6b7280">No league set up yet.</p></div>`;
+    return;
+  }
+
+  _buildDraftingHTML(el);
+  _ensureSubscription(window.state.guillotine.league.id);
+}
+
+function _buildDraftingHTML(el) {
+  const { league, teams, picks } = window.state.guillotine;
+  const uid     = _guildCurrentUserId();
+  const cp      = league.current_pick;
+  const isDone  = league.draft_status === 'complete' || cp > 196;
+  const onClock = _guildCurrentOnClock(league, picks, teams);
+  const pool    = _guildPlayerPool(picks);
+  const colorMap = _ownerColorMap(teams);
+
+  // User's 2 teams
+  const myTeams = teams.filter(t => t.owner_user_id === uid).sort((a, b) => a.draft_slot - b.draft_slot);
+  const isMyTurn = !isDone && onClock && myTeams.some(t => t.id === onClock.id);
+
+  // Each team's next pick and how many picks away it is
+  const myNextPicks = myTeams.map(team => {
+    const next = picks
+      .filter(p => p.team_id === team.id && !p.player_name && p.overall_pick >= cp)
+      .sort((a, b) => a.overall_pick - b.overall_pick)[0];
+    return { team, nextPick: next?.overall_pick ?? null, picksAway: next ? next.overall_pick - cp : null };
+  }).filter(m => m.nextPick != null).sort((a, b) => a.picksAway - b.picksAway);
+
+  // Roster cards
+  const rosterCardsHTML = myTeams.length
+    ? myTeams.map(t => _buildRosterCard(t, picks, false, null, colorMap[t.owner_name])).join('')
+    : `<div style="color:#9ca3af;font-size:14px;padding:20px;text-align:center;">
+         Your teams aren't assigned yet.<br>Ask the admin to link your account.
+       </div>`;
+
+  // Player list with pick markers inserted at the right positions
+  // picksAway=0 means it's literally your pick right now; marker goes before index 0.
+  // picksAway=N means after N other picks you're on the clock; marker goes before index N.
+  let playerListHTML = '';
+  const markerInserted = new Set();
+
+  pool.forEach((p, idx) => {
+    for (const m of myNextPicks) {
+      if (m.picksAway === idx && !markerInserted.has(m.team.id)) {
+        markerInserted.add(m.team.id);
+        const mc = colorMap[m.team.owner_name] || '#1e3a5f';
+        const label = m.picksAway === 0
+          ? `🎯 ${m.team.team_name} — ON THE CLOCK! (Pick #${m.nextPick})`
+          : `▶ ${m.team.team_name} — Pick #${m.nextPick} (${m.picksAway} picks away)`;
+        playerListHTML += `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:${mc}18;border-top:2px solid ${mc};border-bottom:2px solid ${mc};margin:4px 0;">
+            <span style="font-size:11px;font-weight:700;color:${mc};letter-spacing:0.04em;">${label}</span>
+          </div>`;
+      }
+    }
+
+    playerListHTML += `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f3f4f6;">
+        <span style="color:#9ca3af;font-size:11px;width:34px;flex-shrink:0;text-align:right;">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>
+        <span class="pos-badge pos-${p.pos}">${p.pos}</span>
+        <span style="flex:1;font-size:13px;font-weight:500;">${p.name}</span>
+        <span style="font-size:12px;color:#9ca3af;margin-right:4px;">${p.team}</span>
+        ${isMyTurn
+          ? `<button class="g-pick-btn" onclick="window.gMakePick('${p.name.replace(/'/g,"\\'")}','${p.pos}')">Pick</button>`
+          : `<span style="width:46px;display:inline-block;"></span>`}
+      </div>`;
+  });
+
+  if (!playerListHTML) {
+    playerListHTML = '<div style="padding:20px;color:#9ca3af;font-size:13px;">No players available.</div>';
+  }
+
+  el.innerHTML = `
+    <div style="display:flex;height:calc(100vh - 56px);overflow:hidden;">
+
+      <!-- Left: user's rosters -->
+      <div style="width:320px;flex-shrink:0;overflow-y:auto;border-right:1px solid #e5e7eb;background:#f9fafb;">
+        <div style="padding:10px 12px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid #e5e7eb;">
+          My Teams
+        </div>
+        <div style="padding:10px;">
+          ${rosterCardsHTML}
+        </div>
+      </div>
+
+      <!-- Right: player list -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:10px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;align-items:center;gap:8px;">
+          ${isDone
+            ? '<span style="font-size:13px;font-weight:700;color:#16a34a;">✅ Draft Complete</span>'
+            : `<span style="font-size:13px;font-weight:600;color:#374151;">Pick ${cp} of 196</span>
+               <span style="font-size:13px;color:#6b7280;">· Round ${Math.ceil(cp/14)}</span>
+               ${onClock
+                 ? `<span style="font-size:13px;color:#6b7280;margin-left:4px;">· On clock: <strong style="color:#374151;">${onClock.owner_name}</strong></span>`
+                 : '<span style="font-size:13px;color:#6b7280;">· Draft pending</span>'}`}
+          ${isMyTurn ? '<span style="background:#22a648;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;margin-left:auto;">YOUR PICK</span>' : ''}
+        </div>
+        <div style="flex:1;overflow-y:auto;padding-bottom:16px;">
+          ${playerListHTML}
+        </div>
+      </div>
+
+    </div>`;
+}
+
+// ── Roster Card ───────────────────────────────────────────────
 function _buildRosterCard(team, picks, showOwner, nextPick, headerColor) {
-  const roster = _guildRosterForTeam(team.id, picks);
+  const roster    = _guildRosterForTeam(team.id, picks);
   const nextLabel = nextPick != null ? `Pick #${nextPick}` : `Slot ${team.draft_slot}`;
-  const bg = headerColor || '#1e3a5f';
+  const bg        = headerColor || '#1e3a5f';
   return `
     <div class="g-roster-card">
       <div class="g-roster-header" style="background:${bg}">
@@ -339,39 +527,7 @@ function _buildRosterCard(team, picks, showOwner, nextPick, headerColor) {
     </div>`;
 }
 
-function _buildAllTeamsBelow(teams, picks, currentPick) {
-  const sorted = [...teams].sort((a, b) => a.draft_slot - b.draft_slot);
-  const uniqueOwners = [...new Set(sorted.map(t => t.owner_name))].sort();
-  const ownerColor = {};
-  uniqueOwners.forEach((o, i) => ownerColor[o] = GUILD_OWNER_PALETTE[i % GUILD_OWNER_PALETTE.length]);
-
-  const cards = sorted.map(team => {
-    const next = (picks || [])
-      .filter(p => p.team_id === team.id && !p.player_name && p.overall_pick >= currentPick)
-      .sort((a, b) => a.overall_pick - b.overall_pick)[0];
-    return _buildRosterCard(team, picks, false, next?.overall_pick ?? null, ownerColor[team.owner_name]);
-  }).join('');
-  return `<div class="g-all-teams-grid">${cards}</div>`;
-}
-
-// ── Player filter handlers ────────────────────────────────────
-window.gFilterPos = function(pos, btn) {
-  window._gCurrentPos = pos;
-  document.querySelectorAll('.g-pos-tab').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  window.gFilterPlayers();
-};
-
-window.gFilterPlayers = function() {
-  const search = (document.getElementById('gPlayerSearch')?.value || '').toLowerCase();
-  const pos    = window._gCurrentPos || 'ALL';
-  document.querySelectorAll('.g-pool-row').forEach(row => {
-    const matchPos  = pos === 'ALL' || row.dataset.pos === pos;
-    const matchName = row.dataset.name.includes(search);
-    row.style.display = (matchPos && matchName) ? '' : 'none';
-  });
-};
-
+// ── Pick handler ──────────────────────────────────────────────
 window.gMakePick = async function(playerName, pos) {
   const g = window.state.guillotine;
   if (!g) return;
@@ -382,7 +538,7 @@ window.gMakePick = async function(playerName, pos) {
     const pick = g.picks.find(p => p.overall_pick === g.league.current_pick);
     if (pick) { pick.player_name = playerName; pick.pos = pos; }
     g.league.current_pick = g.league.current_pick + 1;
-    _buildGuillotineDraftHTML(document.getElementById('page-draft'));
+    _reRenderCurrentPage();
     showToast(`Picked ${playerName}!`);
   } catch(e) {
     showToast('Error: ' + e.message, 'error');
@@ -405,6 +561,7 @@ async function renderGuillotineTeams() {
   }
 
   const { teams, picks } = window.state.guillotine;
+  const colorMap = _ownerColorMap(teams);
   const ownerMap = {};
   for (const t of teams) {
     if (!ownerMap[t.owner_name]) ownerMap[t.owner_name] = [];
@@ -415,7 +572,7 @@ async function renderGuillotineTeams() {
     <div class="g-owner-group">
       <div class="g-owner-group-header">${owner}</div>
       <div class="g-owner-group-teams">
-        ${ownerTeams.map(t => _buildRosterCard(t, picks, false)).join('')}
+        ${ownerTeams.map(t => _buildRosterCard(t, picks, false, null, colorMap[owner])).join('')}
       </div>
     </div>`).join('');
 
@@ -495,15 +652,15 @@ function _renderGuillotineSetupNew(el, profiles) {
 
 function _renderGuillotineSetupExisting(el, g, profiles) {
   const { league, teams, picks } = g;
-  const doneCount = picks.filter(p => p.player_name).length;
+  const doneCount   = picks.filter(p => p.player_name).length;
   const statusColor = league.draft_status === 'active' ? '#22a648' : league.draft_status === 'complete' ? '#3b82f6' : '#f59e0b';
-  const isPending = league.draft_status === 'pending';
+  const isPending   = league.draft_status === 'pending';
   const profileOptions = profiles.map(p => `<option value="${p.id}">${p.display_name}</option>`).join('');
-  const profileMap = {};
+  const profileMap  = {};
   profiles.forEach(p => profileMap[p.id] = p.display_name);
   window._gProfileMap = profileMap;
 
-  const sorted = [...teams].sort((a, b) => a.draft_slot - b.draft_slot);
+  const sorted   = [...teams].sort((a, b) => a.draft_slot - b.draft_slot);
   const teamRows = sorted.map(t => {
     if (isPending) {
       return `
@@ -591,13 +748,13 @@ window.startGuillotineDraft = async function() {
   const name = document.getElementById('gLeagueName')?.value?.trim() || 'Guillotine League 2025';
   const teamsConfig = [];
   document.querySelectorAll('.g-team-name').forEach(inp => {
-    const slot = parseInt(inp.dataset.slot);
+    const slot    = parseInt(inp.dataset.slot);
     const ownerEl = document.querySelector(`.g-owner-name[data-slot="${slot}"]`);
     const idEl    = document.querySelector(`.g-owner-id[data-slot="${slot}"]`);
     teamsConfig.push({
-      draft_slot: slot,
-      team_name:  inp.value.trim() || `Team ${slot}`,
-      owner_name: ownerEl?.value.trim() || `Owner ${slot}`,
+      draft_slot:    slot,
+      team_name:     inp.value.trim() || `Team ${slot}`,
+      owner_name:    ownerEl?.value.trim() || `Owner ${slot}`,
       owner_user_id: idEl?.value || null,
     });
   });
@@ -626,6 +783,8 @@ window.resetGuillotineDraft = async function() {
   try {
     await window.db.resetGuillotineDraft(g.league.id);
     window.state.guillotine = await window.db.loadGuillotineLeague();
+    // Reset subscription so it re-subscribes to the same league
+    _gChannel = null;
     showToast('Draft reset.');
     renderGuillotineSetup();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -633,9 +792,7 @@ window.resetGuillotineDraft = async function() {
 
 // ── Boot ──────────────────────────────────────────────────────
 window.appInit = function() {
-  // Default to draft board page
   navigate('draft');
 };
 
-// If cloud is already ready (race condition), boot immediately
 if (window.__appReady) window.appInit();
