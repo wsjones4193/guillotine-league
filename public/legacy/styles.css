@@ -173,13 +173,13 @@ a { text-decoration: none; }
 .g-draft-center { padding: 0; overflow: hidden; }
 .g-board-scroll { overflow: auto; flex: 1; }
 
-.g-board-table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 11px; }
+.g-board-table { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 11px; }
 .g-board-table thead tr { background: #f3f4f6; position: sticky; top: 0; z-index: 2; }
 
 .g-board-th {
   padding: 6px 4px; text-align: center; font-size: 13px; font-weight: 700;
-  color: #fff; background: #1e3a5f; white-space: nowrap; border: 1px solid #16305a;
-  min-width: 90px; max-width: 120px; vertical-align: middle; height: 40px;
+  color: #fff; background: #1e3a5f; border: 1px solid #16305a;
+  vertical-align: middle; height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .g-board-round-hdr { padding: 6px 4px; width: 36px; border: 1px solid #e5e7eb; }
 .g-board-round {
@@ -194,7 +194,7 @@ a { text-decoration: none; }
 .g-board-current { background: #eff6ff; outline: 2px solid #1E6BFF; outline-offset: -2px; }
 .g-board-player {
   display: block; font-weight: 600; color: #111; font-size: 10px; line-height: 1.2;
-  margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;
+  margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
 .g-board-pick-num { display: block; font-size: 8px; color: #9ca3af; }
 .g-board-cell-top { display: flex; align-items: center; gap: 3px; margin-bottom: 1px; }
