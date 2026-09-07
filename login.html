@@ -5,21 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guillotine League — Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;500;600&display=swap">
   <script type="module" src="/src/login.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #0f172a;
+      background: #070A0B;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Outfit', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
     }
     .login-card {
-      background: #1e293b;
-      border: 1px solid rgba(99,102,241,0.3);
+      background: #F4EEE1;
       border-radius: 16px;
       padding: 48px 40px;
       width: 100%;
@@ -27,62 +26,89 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 24px;
-      box-shadow: 0 0 48px rgba(99,102,241,0.1), 0 8px 32px rgba(0,0,0,0.5);
+      gap: 28px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
     }
-    .login-title { font-size: 26px; font-weight: 900; color: #f1f5f9; text-align: center; letter-spacing: -0.02em; }
-    .login-title span { color: #818cf8; }
-    .login-subtitle { font-size: 13px; color: rgba(241,245,249,0.45); text-align: center; margin-top: 4px; }
-    form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .login-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .login-brand img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+    }
+    .login-wordmark {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .login-wordmark .the   { font-size: 11px; letter-spacing: 0.14em; font-weight: 700; color: #6b6560; }
+    .login-wordmark .name  { font-size: 22px; color: #070A0B; }
+    .login-wordmark .league { font-size: 11px; letter-spacing: 0.2em; font-weight: 800; color: #B51217; }
+    .login-sub { font-size: 12px; color: #9a948e; text-align: center; font-weight: 500; letter-spacing: 0.02em; }
+    form { width: 100%; display: flex; flex-direction: column; gap: 10px; }
     input {
       width: 100%;
-      background: rgba(15,23,42,0.6);
-      border: 1px solid rgba(99,102,241,0.2);
+      background: #fff;
+      border: 1px solid #ddd8d0;
       border-radius: 8px;
       padding: 11px 14px;
-      color: #f1f5f9;
+      color: #1A1D1E;
       font-size: 14px;
       outline: none;
-      font-family: 'Outfit', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
+      transition: border-color 0.15s;
     }
-    input:focus { border-color: #818cf8; }
-    input::placeholder { color: rgba(241,245,249,0.3); }
+    input:focus { border-color: #B51217; }
+    input::placeholder { color: #b0a99f; }
     .login-btn {
-      background: #6366f1;
+      background: #B51217;
       color: #fff;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 13px 24px;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       width: 100%;
       margin-top: 4px;
       font-family: 'Outfit', system-ui, sans-serif;
+      letter-spacing: 0.04em;
+      transition: background 0.15s;
     }
-    .login-btn:hover { background: #818cf8; }
+    .login-btn:hover { background: #8f0d11; }
     .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .error-msg {
-      color: #f87171;
+      color: #B51217;
       font-size: 13px;
       text-align: center;
       display: none;
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.25);
+      background: rgba(181,18,23,0.08);
+      border: 1px solid rgba(181,18,23,0.2);
       border-radius: 8px;
       padding: 10px 14px;
       width: 100%;
     }
     .error-msg.visible { display: block; }
-    .access-note { font-size: 12px; color: #475569; text-align: center; }
+    .access-note { font-size: 12px; color: #9a948e; text-align: center; }
   </style>
 </head>
 <body>
   <div class="login-card">
-    <div>
-      <div class="login-title">🏈 <span>Guillotine</span> League</div>
-      <div class="login-subtitle">2025 Draft Board</div>
+    <div class="login-brand">
+      <img src="/logo.png" alt="Guillotine League">
+      <div class="login-wordmark">
+        <div class="the">THE</div>
+        <div class="name">GUILLOTINE</div>
+        <div class="league">LEAGUE</div>
+      </div>
     </div>
+    <div class="login-sub">2025 Draft Board</div>
     <div class="error-msg" id="errorMsg"></div>
     <form id="loginForm">
       <input type="email"    id="emailInput"    placeholder="Email address" required autocomplete="email">
