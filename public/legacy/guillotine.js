@@ -665,7 +665,7 @@ async function renderGuillotineTeams() {
       <div style="display:flex;align-items:center;gap:3px;padding:2px 6px;border-bottom:1px solid #f3f4f6;min-height:18px;">
         <span style="font-size:8px;font-weight:700;color:#9ca3af;width:24px;flex-shrink:0;">${slot}</span>
         ${pick
-          ? `<span style="font-size:9px;font-weight:500;line-height:1.2;min-width:0;">${pick.player_name}</span>`
+          ? `<span style="font-size:clamp(7px,0.75vw,11px);font-weight:500;line-height:1.2;min-width:0;">${pick.player_name}</span>`
           : `<span style="font-size:9px;color:#d1d5db;">—</span>`}
       </div>`).join('');
 
